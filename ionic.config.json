@@ -1,0 +1,7 @@
+{
+  "name": "anfas",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}

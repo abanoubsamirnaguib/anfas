@@ -1,0 +1,15 @@
+/* Bellezza Product Modal – minimal dark overrides */
+
+ion-modal {
+  --background: #0C0C0C;
+}
+
+ion-accordion-group {
+  background: transparent;
+}
+
+ion-accordion {
+  background: transparent;
+  --border-color: #2A2A2A;
+  margin-bottom: 4px;
+}
