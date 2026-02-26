@@ -4,43 +4,35 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
     /**
      * Return all active categories.
-     * Cached for 60 minutes — category list rarely changes.
      */
     public function index()
     {
-        $categories = Cache::remember('api.categories', 3600, function () {
-            return Category::where('is_active', true)
-                ->withCount(['products' => function ($query) {
-                    $query->where('is_active', true);
-                }])
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($c) => $this->formatCategory($c));
-        });
+        $categories = Category::where('is_active', true)
+            ->withCount(['products' => function ($query) {
+                $query->where('is_active', true);
+            }])
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn ($c) => $this->formatCategory($c));
 
         return response()->json($categories);
     }
 
     /**
      * Return a single category by slug.
-     * Cached for 30 minutes.
      */
     public function show(Category $category)
     {
-        $data = Cache::remember("api.category.{$category->slug}", 1800, function () use ($category) {
-            $category->loadCount(['products' => function ($query) {
-                $query->where('is_active', true);
-            }]);
-            return $this->formatCategory($category);
-        });
-
-        return response()->json($data);
+        $category->loadCount(['products' => function ($query) {
+            $query->where('is_active', true);
+        }]);
+        
+        return response()->json($this->formatCategory($category));
     }
 
     /**
