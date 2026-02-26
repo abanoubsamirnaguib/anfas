@@ -55,9 +55,6 @@ const App = () => {
               <Route key={`route_${index}`} exact={true} path={page.href} component={page.component} />
             ))}
 
-            <Route exact path="/">
-              <Redirect to={pages.filter(p => p.default)[0].href} />
-            </Route>
           </IonRouterOutlet>
 
           <IonTabBar slot="bottom"

@@ -7,7 +7,7 @@ import Category from "./Category";
 export const pages = [
 
   {
-    href: "/categories",
+    href: "/",
     icon: homeOutline,
     component: Categories,
     default: true,

@@ -35,11 +35,11 @@ class ImageUploadController extends Controller
             // Generate unique filename
             $filename = Str::uuid() . '.webp';
             $relativePath = $folder . '/' . $filename;
-            $absolutePath = storage_path('app/public/' . $relativePath);
+            $absolutePath = public_path('storage/' . $relativePath);
 
             // Ensure directory exists
-            if (! is_dir(storage_path('app/public/' . $folder))) {
-                mkdir(storage_path('app/public/' . $folder), 0755, true);
+            if (! is_dir(public_path('storage/' . $folder))) {
+                mkdir(public_path('storage/' . $folder), 0755, true);
             }
 
             // Convert & save as WebP (quality 85)
