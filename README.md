@@ -7,7 +7,7 @@ The UI features a dark, editorial aesthetic inspired by high-end fragrance bouti
 
 ## Screenshot
 
-![Anfas app screenshot](assets/app-screenshot.png)
+![Anfas app screenshot](/Anfas.png)
 
 _If the image does not appear, place the provided screenshot file at_ `assets/app-screenshot.png`.
 

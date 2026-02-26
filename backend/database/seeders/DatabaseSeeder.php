@@ -60,7 +60,6 @@ class DatabaseSeeder extends Seeder
         // Create Sample Products
         $product1 = Product::create([
             'category_id' => $women->id,
-            'subcategory_id' => $eauDeParfum->id,
             'name' => 'Rose Elegance',
             'slug' => 'rose-elegance',
             'description' => 'A luxurious floral fragrance featuring delicate rose petals',
@@ -117,7 +116,6 @@ class DatabaseSeeder extends Seeder
 
         $product2 = Product::create([
             'category_id' => $men->id,
-            'subcategory_id' => $eauDeToilette->id,
             'name' => 'Ocean Breeze',
             'slug' => 'ocean-breeze',
             'description' => 'Fresh aquatic fragrance with citrus notes',
@@ -192,7 +190,6 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Database seeded successfully!');
         $this->command->info('Categories: 3');
-        $this->command->info('Subcategories: 7');
         $this->command->info('Products: 2');
         $this->command->info('Product Attributes: 5');
         $this->command->info('Discount Codes: 2');
