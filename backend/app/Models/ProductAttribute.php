@@ -26,6 +26,7 @@ class ProductAttribute extends Model
         'name',        // e.g., "Travel", "Standard", "Prestige"
         'value',       // e.g., "10 ml", "50 ml", "100 ml"
         'price',       // ACTUAL PRICE customer pays for this size
+        'discount_percentage', // Individual discount for this attribute
         'stock',
         'sku',
         'is_active',
@@ -34,8 +35,22 @@ class ProductAttribute extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    protected $appends = ['final_price'];
+
+    /**
+     * Calculate final price based on discount percentage
+     */
+    public function getFinalPriceAttribute()
+    {
+        if ($this->discount_percentage > 0) {
+            return $this->price * (1 - ($this->discount_percentage / 100));
+        }
+        return $this->price;
+    }
 
     public function product()
     {

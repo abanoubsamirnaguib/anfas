@@ -23,7 +23,8 @@ class ProductRequest extends FormRequest
         }
 
         return [
-            'category_id'          => ['required', 'integer', 'exists:categories,id'],
+            'category_ids'         => ['required', 'array', 'min:1'],
+            'category_ids.*'       => ['integer', 'exists:categories,id'],
             'name'                 => ['required', 'string', 'min:2', 'max:255'],
             'slug'                 => ['nullable', 'string', 'max:255', $slugRule, 'regex:/^[a-z0-9\-]+$/'],
             'description'          => ['nullable', 'string', 'max:5000'],
@@ -39,6 +40,7 @@ class ProductRequest extends FormRequest
             'sort_order'           => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_active'            => ['boolean'],
             'is_featured'          => ['boolean'],
+            'is_suggested'         => ['boolean'],
             'tags'                 => ['nullable', 'array'],
             'tags.*'               => ['string', 'max:100'],
         ];
@@ -47,8 +49,9 @@ class ProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'category_id.required'         => 'Please select a category.',
-            'category_id.exists'           => 'The selected category does not exist.',
+            'category_ids.required'        => 'Please select at least one category.',
+            'category_ids.min'             => 'Please select at least one category.',
+            'category_ids.*.exists'        => 'One or more selected categories do not exist.',
             'name.required'                => 'Product name is required.',
             'name.min'                     => 'Product name must be at least 2 characters.',
             'name.max'                     => 'Product name may not exceed 255 characters.',
@@ -90,6 +93,7 @@ class ProductRequest extends FormRequest
             'sort_order'          => 'sort order',
             'is_active'           => 'active status',
             'is_featured'         => 'featured status',
+            'is_suggested'        => 'suggested status',
         ];
     }
 }

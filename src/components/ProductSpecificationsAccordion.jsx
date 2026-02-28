@@ -1,6 +1,6 @@
 import { IonAccordion, IonAccordionGroup, IonItem, IonLabel, IonList } from "@ionic/react";
 import { useRef, useMemo } from "react";
-import { productSpecs } from "../utils";
+import { productSpecs, sortProductAttributes } from "../utils";
 import { getSpecsByLanguage, useI18n } from '../i18n';
 
 /**
@@ -47,20 +47,39 @@ function buildProductSpecs(product, staticSpecs) {
   if (!result.shipping) result.shipping = staticSpecs.shipping;
 
   // ── Available Sizes (from product attributes) ─────────────────────────────────
-  const attrs = Array.isArray(product?.attributes) ? product.attributes : [];
-  if (attrs.length > 0) {
+  const sortedAttrs = sortProductAttributes(product);
+  if (sortedAttrs.length > 0) {
     result.sizes = {
       header: staticSpecs.sizes?.header || 'Available Sizes',
       wrapText: true,
-      options: attrs.map((a) => ({
-        label: a.name,
-        value: a.formatted_price ? `${a.value} — ${a.formatted_price}` : a.value,
-      })),
+      options: sortedAttrs.map((a) => {
+        // Show discount info if attribute has a discount
+        const hasDiscount = a.discount > 0;
+        let priceDisplay = a.formatted_price || a.value;
+        
+        if (hasDiscount) {
+          const originalPrice = a.formatted_original_price || `L.E ${Math.round(a.original_price || 0)}`;
+          priceDisplay = `${a.value} — ${originalPrice} → ${a.formatted_price} (-${Math.round(a.discount)}%)`;
+        } else if (a.formatted_price) {
+          priceDisplay = `${a.value} — ${a.formatted_price}`;
+        }
+        
+        return {
+          label: a.name,
+          value: priceDisplay,
+        };
+      }),
     };
   } else {
     // No attributes: provide a single "Base Size" option using the product price
     const baseLabel = staticSpecs.sizes?.options?.[1]?.label || 'Base Size';
-    const baseValue = product?.price || (product?.final_price ? `L.E ${Math.round(product.final_price)}` : null);
+    const hasDiscount = product?.discount > 0;
+    let baseValue = product?.price || (product?.final_price ? `L.E ${Math.round(product.final_price)}` : null);
+    
+    if (hasDiscount && product?.original_price) {
+      baseValue = `${product.original_price} → ${product.price} (-${Math.round(product.discount)}%)`;
+    }
+    
     result.sizes = {
       header: staticSpecs.sizes?.header || 'Available Sizes',
       wrapText: true,

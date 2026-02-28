@@ -22,18 +22,24 @@ class DiscountCodeRequest extends FormRequest
             $codeRule = $codeRule->ignore($discountCodeId);
         }
 
-        return [
+        $rules = [
             'code'         => ['required', 'string', 'max:50', $codeRule, 'regex:/^[A-Za-z0-9_\-]+$/'],
             'description'  => ['nullable', 'string', 'max:1000'],
             'type'         => ['required', 'in:percentage,fixed'],
             'value'        => ['required', 'numeric', 'min:0.01', 'max:99999.99'],
-            'min_purchase' => ['nullable', 'numeric', 'min:0'],
-            'max_discount' => ['nullable', 'numeric', 'min:0'],
             'usage_limit'  => ['nullable', 'integer', 'min:1'],
             'starts_at'    => ['nullable', 'date'],
             'expires_at'   => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active'    => ['boolean'],
         ];
+
+        // Only validate min_purchase and max_discount for percentage type
+        if ($this->input('type') === 'percentage') {
+            $rules['min_purchase'] = ['nullable', 'numeric', 'min:0'];
+            $rules['max_discount'] = ['nullable', 'numeric', 'min:0'];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

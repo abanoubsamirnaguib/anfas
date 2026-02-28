@@ -1,11 +1,12 @@
 import { useStoreState } from "pullstate";
 import { useEffect, useState } from "react";
 import { CartStore } from "../store";
-import { increaseQty, decreaseQty, removeFromCart } from "../store/CartStore";
+import { increaseQty, decreaseQty, removeFromCart, clearCart, addToCart } from "../store/CartStore";
 import { getCart } from "../store/Selectors";
 import { FALLBACK_IMG } from "../utils";
 import { useI18n } from '../i18n';
-import { sendWhatsappMessage, validateDiscountCode, fetchSettings } from '../services/api';
+import { sendWhatsappMessage, validateDiscountCode, fetchSettings, fetchSuggestedProducts } from '../services/api';
+import { ProductModal } from './ProductModal';
 
 const {
   IonPage,
@@ -24,8 +25,10 @@ const {
   IonItemOptions,
   IonItemOption,
   IonItem,
+  IonModal,
+  useIonToast,
 } = require("@ionic/react");
-const { closeOutline, trashOutline } = require("ionicons/icons");
+const { closeOutline, trashOutline, addOutline } = require("ionicons/icons");
 
 export const CartModal = (props) => {
   const cart = useStoreState(CartStore, getCart);
@@ -34,6 +37,7 @@ export const CartModal = (props) => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [present] = useIonToast();
 
   // Discount coupon state
   const [discountCode, setDiscountCode] = useState('');
@@ -41,12 +45,26 @@ export const CartModal = (props) => {
   const [discountApplied, setDiscountApplied] = useState(false);
   const [discountError, setDiscountError] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
-  const [waPhone, setWaPhone] = useState('201068644570');
+  const [waPhone, setWaPhone] = useState('201234567899');
+
+  // Suggested products state
+  const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showProductModal, setShowProductModal] = useState(false);
 
   useEffect(() => {
     fetchSettings().then(s => {
       if (s?.whatsapp_phone) setWaPhone(s.whatsapp_phone);
     }).catch(() => {});
+
+    // Fetch suggested products
+    fetchSuggestedProducts(10).then(products => {
+      console.log('Suggested products fetched:', products);
+      setSuggestedProducts(products || []);
+    }).catch((error) => {
+      console.error('Error fetching suggested products:', error);
+      setSuggestedProducts([]);
+    });
   }, []);
 
   const finalTotal = Math.max(0, totalPrice - discountAmount);
@@ -79,6 +97,33 @@ export const CartModal = (props) => {
     setDiscountAmount(0);
     setDiscountApplied(false);
     setDiscountError('');
+  };
+
+  const handleQuickAddToCart = (product) => {
+    // Add first attribute or base price to cart
+    const firstAttr = product.attributes && product.attributes.length > 0 ? product.attributes[0] : null;
+    const price = firstAttr ? firstAttr.formatted_price : product.price;
+    const size = firstAttr ? firstAttr.value : null;
+    
+    addToCart({
+      id: product.id,
+      title: product.title,
+      image: product.image,
+      price: price,
+      size: size,
+    });
+
+    present({
+      message: t('cart.addedToBag'),
+      duration: 1500,
+      position: 'bottom',
+      color: 'success',
+    });
+  };
+
+  const handleOpenProduct = (product) => {
+    setSelectedProduct(product);
+    setShowProductModal(true);
   };
 
   const handleCheckout = async () => {
@@ -158,6 +203,20 @@ export const CartModal = (props) => {
 
     const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
+    
+    // Show success toast
+    present({
+      message: t('cart.orderSent') || 'تم إرسال الطلب بنجاح',
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+    });
+    
+    // Clear cart and close modal
+    clearCart();
+    if (props.close) {
+      props.close();
+    }
   };
 
   useEffect(() => {
@@ -314,13 +373,26 @@ export const CartModal = (props) => {
                   >
                     {item.title}{item.size ? ` • ${item.size}` : ''}
                   </p>
-                  <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
-                    {(() => {
-                      const raw = String(item.price || '').replace(/[^0-9]/g, '');
-                      const num = parseFloat(raw) || 0;
-                      return `${num.toFixed(2)} L.E`;
-                    })()}
-                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
+                      {(() => {
+                        const raw = String(item.price || '').replace(/[^0-9]/g, '');
+                        const num = parseFloat(raw) || 0;
+                        return `${num.toFixed(2)} L.E`;
+                      })()}
+                    </p>
+                    {(item.qty || 1) > 1 && (
+                      <p style={{ color: '#7A7A7A', fontSize: '0.7rem', fontWeight: 400, margin: '2px 0 0', fontStyle: 'italic' }}>
+                        {(() => {
+                          const raw = String(item.price || '').replace(/[^0-9]/g, '');
+                          const num = parseFloat(raw) || 0;
+                          const qty = item.qty || 1;
+                          const total = num * qty;
+                          return `Total: ${total.toFixed(2)} L.E`;
+                        })()}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -341,6 +413,179 @@ export const CartModal = (props) => {
             </IonItemOptions>
           </IonItemSliding>
         ))}
+
+        {/* ── Suggested Products Section ── */}
+        {cart.length > 0 && suggestedProducts.length > 0 && (
+          <>
+            {/* Divider */}
+            <div style={{
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent 0%, #C9A96E 50%, transparent 100%)',
+              margin: '1.5rem 0',
+            }} />
+
+            {/* Heading */}
+            <div style={{ padding: '0 1.25rem', marginBottom: '0.75rem' }}>
+              <h3 style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: '1rem',
+                color: '#C9A96E',
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                margin: 0,
+                fontWeight: 300,
+              }}>
+                {t('cart.suggestedHeading')}
+              </h3>
+            </div>
+
+            {/* Suggested Products Horizontal Scroll */}
+            <div style={{
+              padding: '0 0 1rem',
+              display: 'flex',
+              gap: '0.4rem',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              paddingLeft: '1.25rem',
+              paddingRight: '1.25rem',
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+            }}>
+              {suggestedProducts.map((product) => {
+                const hasDiscount = product.discount && product.discount > 0;
+                return (
+                  <div
+                    key={product.id}
+                    style={{
+                      background: '#1A1A1A',
+                      borderRadius: '4px',
+                      border: '1px solid #2A2A2A',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minWidth: '110px',
+                      width: '110px',
+                      flexShrink: 0,
+                      scrollSnapAlign: 'start',
+                    }}
+                  >
+                    {/* Product Image */}
+                    <div
+                      onClick={() => handleOpenProduct(product)}
+                      style={{
+                        width: '100%',
+                        height: '80px',
+                        borderRadius: '4px 4px 0 0',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        position: 'relative',
+                      }}
+                    >
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                      {/* Discount Badge */}
+                      {hasDiscount && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: '#CF6679',
+                          color: '#FFF',
+                          fontSize: '0.6rem',
+                          fontWeight: 700,
+                          padding: '2px 4px',
+                          borderRadius: '3px',
+                          lineHeight: 1,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                        }}>
+                          -{Math.round(product.discount)}%
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Info */}
+                    <div style={{ 
+                      padding: '0.4rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.2rem',
+                      flex: 1,
+                    }}>
+                      <p 
+                        onClick={() => handleOpenProduct(product)}
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          fontSize: '0.7rem',
+                          color: '#F5F0E8',
+                          margin: 0,
+                          lineHeight: 1.1,
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          textOverflow: 'ellipsis',
+                          minHeight: '1.8em',
+                        }}
+                      >
+                        {product.title}
+                      </p>
+                      <p style={{
+                        color: '#C9A96E',
+                        fontSize: '0.65rem',
+                        fontWeight: 600,
+                        margin: 0,
+                      }}>
+                        {product.price}
+                      </p>
+
+                      {/* Add Icon Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleQuickAddToCart(product);
+                        }}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          background: '#C9A96E',
+                          border: 'none',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s',
+                          alignSelf: 'flex-end',
+                          marginTop: 'auto',
+                        }}
+                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                      >
+                        <IonIcon
+                          icon={addOutline}
+                          style={{
+                            color: '#0C0C0C',
+                            fontSize: '0.95rem',
+                          }}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </IonContent>
 
       {/* ── Footer ── */}
@@ -471,6 +716,25 @@ export const CartModal = (props) => {
           </IonButton>
         </div>
       </IonFooter>
+
+      {/* Product Details Modal */}
+      <IonModal
+        isOpen={showProductModal}
+        onDidDismiss={() => {
+          setShowProductModal(false);
+          setSelectedProduct(null);
+        }}
+      >
+        {selectedProduct && (
+          <ProductModal
+            product={selectedProduct}
+            dismiss={() => {
+              setShowProductModal(false);
+              setSelectedProduct(null);
+            }}
+          />
+        )}
+      </IonModal>
     </IonPage>
   );
 };

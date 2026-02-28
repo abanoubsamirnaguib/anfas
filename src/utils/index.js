@@ -90,3 +90,86 @@ export const randomCount = () => {
 	const min = 23;
 	return Math.floor(Math.random() * (max - min) + min).toFixed(0);
 }
+
+/**
+ * Sort product attributes by sort_order (if available), then by id
+ * Returns a new sorted array without mutating the original
+ */
+export const sortProductAttributes = (product) => {
+	const attrs = Array.isArray(product?.attributes) ? product.attributes : [];
+	if (attrs.length === 0) return [];
+	
+	return [...attrs].sort((a, b) => {
+		// First sort by sort_order if available
+		if (a.sort_order !== undefined && b.sort_order !== undefined) {
+			return a.sort_order - b.sort_order;
+		}
+		// Fallback to id
+		if (a.id !== undefined && b.id !== undefined) {
+			return a.id - b.id;
+		}
+		return 0;
+	});
+};
+
+/**
+ * Get the display price for a product card
+ * Returns the price of the first attribute (after sorting) or the base price
+ */
+export const getDisplayPrice = (product) => {
+	const sortedAttrs = sortProductAttributes(product);
+	
+	// If product has attributes, use the first one's price
+	if (sortedAttrs.length > 0) {
+		const firstAttr = sortedAttrs[0];
+		// Prefer formatted_price, fallback to price
+		return firstAttr.formatted_price || firstAttr.price || product.price;
+	}
+	
+	// Otherwise use the base product price (with discount applied)
+	return product.price;
+};
+
+/**
+ * Get the original (pre-discount) price for a product card
+ * Returns the original price of the first attribute or the base original price
+ */
+export const getOriginalPrice = (product) => {
+	const sortedAttrs = sortProductAttributes(product);
+	
+	// If product has attributes, use the first one's original price
+	if (sortedAttrs.length > 0) {
+		const firstAttr = sortedAttrs[0];
+		// Only return if there's actually a discount on this attribute
+		if (firstAttr.discount > 0) {
+			return firstAttr.formatted_original_price || firstAttr.original_price;
+		}
+		return null;
+	}
+	
+	// For products without attributes, check product discount
+	if (product.discount > 0) {
+		return product.original_price;
+	}
+	
+	return null;
+};
+
+/**
+ * Check if a product has an active discount
+ * Checks both attribute-level and product-level discounts
+ */
+export const hasDiscount = (product) => {
+	if (!product) return false;
+	
+	const sortedAttrs = sortProductAttributes(product);
+	
+	// If product has attributes, check first attribute's discount
+	if (sortedAttrs.length > 0) {
+		const firstAttr = sortedAttrs[0];
+		return firstAttr.discount > 0;
+	}
+	
+	// Otherwise check product's discount
+	return product.discount > 0;
+};

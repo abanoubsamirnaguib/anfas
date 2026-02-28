@@ -11,7 +11,6 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
         'name',
         'slug',
         'description',
@@ -25,6 +24,7 @@ class Product extends Model
         'sort_order',
         'is_active',
         'is_featured',
+        'is_suggested',
         'tags',
     ];
 
@@ -37,6 +37,7 @@ class Product extends Model
         'tags' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
+        'is_suggested' => 'boolean',
     ];
 
     protected $appends = ['final_price'];
@@ -52,9 +53,27 @@ class Product extends Model
         });
     }
 
-    public function category()
+    /**
+     * A product can belong to multiple categories.
+     */
+    public function categories()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class);
+    }
+
+    /**
+     * Backwards-compatible accessor that returns the first category model
+     * when accessing `$product->category` as a single model.
+     * Note: For eager loading, use `with('categories')` instead.
+     */
+    public function getCategoryAttribute()
+    {
+        // Prefer the loaded relation when available, otherwise query for first
+        if ($this->relationLoaded('categories')) {
+            return $this->getRelation('categories')->first() ?: null;
+        }
+
+        return $this->categories()->first();
     }
 
     /**

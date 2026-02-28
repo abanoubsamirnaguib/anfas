@@ -27,6 +27,12 @@ class DiscountCodeController extends Controller
     {
         $validated = $request->validated();
 
+        // For fixed type discounts, clear min_purchase and max_discount
+        if ($validated['type'] === 'fixed') {
+            $validated['min_purchase'] = 0;
+            $validated['max_discount'] = null;
+        }
+
         DiscountCode::create($validated);
 
         return redirect()->route('admin.discount-codes.index')
@@ -43,6 +49,12 @@ class DiscountCodeController extends Controller
     public function update(DiscountCodeRequest $request, DiscountCode $discountCode)
     {
         $validated = $request->validated();
+
+        // For fixed type discounts, clear min_purchase and max_discount
+        if ($validated['type'] === 'fixed') {
+            $validated['min_purchase'] = 0;
+            $validated['max_discount'] = null;
+        }
 
         $discountCode->update($validated);
 

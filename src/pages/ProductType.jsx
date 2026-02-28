@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { FilterModal } from '../components/FilterModal';
 import { ProductModal } from '../components/ProductModal';
-import { capitalize, productInfo, FALLBACK_IMG } from '../utils';
+import { capitalize, productInfo, FALLBACK_IMG, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 import { LanguageToggle } from '../components/LanguageToggle';
 
@@ -182,7 +182,9 @@ const ProductType = () => {
               textTransform: 'uppercase',
             }}
           >
-            {capitalize(type)}
+            <div onClick={() => { router.push('/'); setTimeout(() => window.location.hash = 'hero-section', 100); }} style={{ cursor: 'pointer' }}>
+              {capitalize(type)}
+            </div>
           </IonTitle>
           <IonButtons slot="end">
             <LanguageToggle />
@@ -331,6 +333,11 @@ const ProductType = () => {
                       onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
+                    {hasDiscount(product) && (
+                      <span style={{ position: 'absolute', top: '8px', right: '8px', background: '#C9A96E', color: '#0C0C0C', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 6px', borderRadius: '2px' }}>
+                        -{Math.round(product.discount)}%
+                      </span>
+                    )}
                   </div>
                   <div style={{ padding: '0.6rem 0.75rem 0.75rem' }}>
                     <p
@@ -349,9 +356,16 @@ const ProductType = () => {
                       {product.title}
                     </p>
                     {product.reviews && <StarRating rating={product.reviews} />}
-                    <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: '4px 0 0' }}>
-                      {product.price}
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '4px 0 0' }}>
+                      {hasDiscount(product) && (
+                        <p style={{ color: '#6B6B6B', fontSize: '0.75rem', fontWeight: 400, margin: 0, textDecoration: 'line-through' }}>
+                          {getOriginalPrice(product)}
+                        </p>
+                      )}
+                      <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
+                        {getDisplayPrice(product)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -49,7 +49,14 @@
                                         <img v-if="product.image" :src="product.image" :alt="product.name" class="h-10 w-10 rounded object-cover" />
                                     </td>
                                     <td class="px-6 py-4 text-sm font-medium text-slate-100">{{ product.name }}</td>
-                                    <td class="px-6 py-4 text-sm text-slate-300">{{ product.category.name }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-300">
+                                        <div class="flex flex-wrap gap-1">
+                                            <span v-for="cat in product.categories" :key="cat.id" class="inline-block px-2 py-1 text-xs bg-slate-800 text-slate-200 rounded">
+                                                {{ cat.name }}
+                                            </span>
+                                            <span v-if="!product.categories || product.categories.length === 0" class="text-slate-500 italic">None</span>
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-slate-100">€{{ product.base_price }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-300">{{ product.attributes_count }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">

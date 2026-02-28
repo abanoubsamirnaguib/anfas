@@ -59,7 +59,6 @@ class DatabaseSeeder extends Seeder
 
         // Create Sample Products
         $product1 = Product::create([
-            'category_id' => $women->id,
             'name' => 'Rose Elegance',
             'slug' => 'rose-elegance',
             'description' => 'A luxurious floral fragrance featuring delicate rose petals',
@@ -82,6 +81,9 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'is_featured' => true,
         ]);
+
+        // Attach categories to product1 (appears in Women and Offers categories)
+        $product1->categories()->attach([$women->id, $offers->id]);
 
         // Create Product Attributes (Sizes)
         ProductAttribute::create([
@@ -115,7 +117,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $product2 = Product::create([
-            'category_id' => $men->id,
             'name' => 'Ocean Breeze',
             'slug' => 'ocean-breeze',
             'description' => 'Fresh aquatic fragrance with citrus notes',
@@ -137,6 +138,9 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'is_featured' => false,
         ]);
+
+        // Attach categories to product2 (appears only in Men category)
+        $product2->categories()->attach($men->id);
 
         // Create Product Attributes for Product 2
         ProductAttribute::create([

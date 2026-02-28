@@ -47,7 +47,10 @@
                             <tbody class="divide-y divide-slate-800">
                                 <tr v-for="product in recentProducts" :key="product.id">
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-100">{{ product.name }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-300">{{ product.category.name }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-300">
+                                        <span v-if="product.categories && product.categories.length > 0">{{ product.categories[0].name }}</span>
+                                        <span v-else class="text-slate-500 italic">None</span>
+                                    </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-100">€{{ product.base_price }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <span v-if="product.is_active" class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>

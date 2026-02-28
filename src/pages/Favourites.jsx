@@ -3,10 +3,12 @@ import {
   IonHeader,
   IonIcon,
   IonPage,
+  IonRouterLink,
   IonTitle,
   IonToolbar,
   IonButtons,
   useIonModal,
+  useIonRouter,
 } from '@ionic/react';
 import { heartOutline } from 'ionicons/icons';
 import { useStoreState } from 'pullstate';
@@ -15,12 +17,13 @@ import { ProductModal } from '../components/ProductModal';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { FavouritesStore } from '../store';
 import { getFavourites } from '../store/Selectors';
-import { FALLBACK_IMG } from '../utils';
+import { FALLBACK_IMG, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 
 const Favourites = () => {
   const favourites = useStoreState(FavouritesStore, getFavourites);
   const { t } = useI18n();
+  const router = useIonRouter();
 
   const [selectedProduct, setSelectedProduct] = useState([]);
   const [presentProductModal, dismissProductModal] = useIonModal(ProductModal, {
@@ -48,7 +51,9 @@ const Favourites = () => {
               textTransform: 'uppercase',
             }}
           >
-            {t('favourites.title')}
+            <div onClick={() => { router.push('/'); setTimeout(() => window.location.hash = 'hero-section', 100); }} style={{ cursor: 'pointer' }}>
+              {t('favourites.title')}
+            </div>
           </IonTitle>
           <IonButtons slot="end">
             <LanguageToggle />
@@ -143,6 +148,11 @@ const Favourites = () => {
                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
+                        {hasDiscount(product) && (
+                          <span style={{ position: 'absolute', top: '8px', left: '8px', background: '#C9A96E', color: '#0C0C0C', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 6px', borderRadius: '2px' }}>
+                            -{Math.round(product.discount)}%
+                          </span>
+                        )}
                         <div
                           style={{
                             position: 'absolute',
@@ -171,9 +181,16 @@ const Favourites = () => {
                         >
                           {product.title}
                         </p>
-                        <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
-                          {product.price}
-                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {hasDiscount(product) && (
+                            <p style={{ color: '#6B6B6B', fontSize: '0.75rem', fontWeight: 400, margin: 0, textDecoration: 'line-through' }}>
+                              {getOriginalPrice(product)}
+                            </p>
+                          )}
+                          <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
+                            {getDisplayPrice(product)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

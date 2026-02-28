@@ -87,6 +87,11 @@ const translations = {
       subtotal: 'Subtotal',
       discountAmount: 'Discount',
       finalTotal: 'Total After Discount',
+      addedToBag: 'Added to bag successfully!',
+      viewBag: 'View Bag',
+      orderSent: 'Order sent to WhatsApp successfully!',
+      suggestedHeading: 'Suggested Products',
+      addToCart: 'Add',
     },
     product: {
       size: 'Select Size',
@@ -152,6 +157,11 @@ const translations = {
       Moisturizer: 'Moisturizer',
       SPF: 'SPF',
       Lip: 'Lip',
+    },
+    aboutUs: {
+      title: 'About Us',
+      call: 'Call Us',
+      email: 'Email Us',
     },
   },
   ar: {
@@ -238,6 +248,11 @@ const translations = {
       subtotal: 'الاجمالي قبل الخصم',
       discountAmount: 'الخصم',
       finalTotal: 'الاجمالي بعد الخصم',
+      addedToBag: 'تم الإضافة إلى السلة بنجاح!',
+      viewBag: 'عرض السلة',
+      orderSent: 'تم إرسال الطلب إلى واتساب بنجاح!',
+      suggestedHeading: 'منتجات مقترحة',
+      addToCart: 'إضافة',
     },
     product: {
       size: 'اختر الحجم',
@@ -303,6 +318,11 @@ const translations = {
       Moisturizer: 'مرطب',
       SPF: 'حماية شمس',
       Lip: 'شفاه',
+    },
+    aboutUs: {
+      title: 'من نحن',
+      call: 'اتصل بنا',
+      email: 'راسلنا',
     },
   },
 };

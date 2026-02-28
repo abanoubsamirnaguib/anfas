@@ -3,6 +3,7 @@ import { heartOutline, homeOutline } from "ionicons/icons";
 import Categories from "./Categories";
 import Favourites from "./Favourites";
 import Category from "./Category";
+import Product from "./Product";
 
 export const pages = [
 
@@ -18,6 +19,13 @@ export const pages = [
     icon: homeOutline,
     component: Category,
     default: true,
+    isTab: false
+  },
+  {
+    href: "/categories/:category/products/:slug",
+    icon: homeOutline,
+    component: Product,
+    default: false,
     isTab: false
   },
   {

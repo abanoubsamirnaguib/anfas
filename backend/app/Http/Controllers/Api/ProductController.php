@@ -23,7 +23,7 @@ class ProductController extends Controller
         $page        = (int) $request->input('page', 1);
 
         $fetcher = function () use ($categorySlug, $search, $tag, $featured, $sortBy, $direction, $perPage) {
-            $query = Product::whereHas('category', function ($q) use ($categorySlug) {
+            $query = Product::whereHas('categories', function ($q) use ($categorySlug) {
                 $q->where('slug', $categorySlug)->where('is_active', true);
             })
             ->where('is_active', true)
@@ -37,10 +37,10 @@ class ProductController extends Controller
 
             if ($tag) {
                 $query->where(function ($q) use ($tag) {
-                    // MySQL: exact element match in JSON array (case-insensitive)
-                    $q->whereRaw('JSON_CONTAINS(LOWER(tags), JSON_QUOTE(LOWER(?)))', [$tag])
-                      // Fallback for SQLite / testing
-                      ->orWhereRaw('LOWER(tags) LIKE ?', ['%"' . strtolower($tag) . '"%']);
+                    // MySQL: exact element match in JSON array (works with Arabic/UTF-8)
+                    $q->whereRaw('JSON_CONTAINS(tags, JSON_QUOTE(?))', [$tag])
+                      // Fallback for SQLite / testing (also works with Arabic/UTF-8)
+                      ->orWhereRaw('tags LIKE ?', ['%"' . $tag . '"%']);
                 });
             }
 
@@ -71,9 +71,32 @@ class ProductController extends Controller
 
         $products = Product::where('is_active', true)
             ->where('is_featured', true)
-            ->whereHas('category', fn ($q) => $q->where('is_active', true))
+            ->whereHas('categories', fn ($q) => $q->where('is_active', true))
             ->with([
-                'category',
+                'categories',
+                'attributes' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
+            ])
+            ->orderBy('sort_order')
+            ->limit($perPage)
+            ->get()
+            ->map(fn ($p) => $this->formatProduct($p, true));
+
+        return response()->json($products);
+    }
+
+    /**
+     * Global suggested products (across all active categories).
+     * GET /products/suggested?per_page=10
+     */
+    public function suggested(Request $request)
+    {
+        $perPage = (int) $request->input('per_page', 10);
+
+        $products = Product::where('is_active', true)
+            ->where('is_suggested', true)
+            ->whereHas('categories', fn ($q) => $q->where('is_active', true))
+            ->with([
+                'categories',
                 'attributes' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
             ])
             ->orderBy('sort_order')
@@ -104,7 +127,7 @@ class ProductController extends Controller
         }
 
         // Derive unique tags from the products in this category
-        $products = Product::whereHas('category', function ($q) use ($categorySlug) {
+        $products = Product::whereHas('categories', function ($q) use ($categorySlug) {
                 $q->where('slug', $categorySlug);
             })
             ->whereNotNull('tags')
@@ -125,7 +148,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load([
-            'category',
+            'categories',
             'attributes' => function ($query) {
                 $query->where('is_active', true)->orderBy('sort_order');
             },
@@ -147,46 +170,79 @@ class ProductController extends Controller
      */
     private function formatProduct(Product $product, bool $withCategory = false): array
     {
+        $productDiscount = (float) $product->discount_percentage;
+        
         $attributes = ($product->relationLoaded('attributes') ? $product->attributes : collect())
-            ->map(fn ($a) => [
-                'id'              => $a->id,
-                'name'            => $a->name,
-                'value'           => $a->value,
-                'price'           => (float) $a->price,
-                'formatted_price' => 'L.E ' . number_format($a->price, 0),
-                'stock'           => $a->stock,
-                'sku'             => $a->sku,
-            ]);
+            ->map(function ($a) {
+                // Each attribute has its own discount percentage
+                $attributeDiscount = (float) ($a->discount_percentage ?? 0);
+                $originalPrice = (float) $a->price;
+                $discountedPrice = $attributeDiscount > 0 
+                    ? $originalPrice * (1 - ($attributeDiscount / 100))
+                    : $originalPrice;
+                
+                return [
+                    'id'                     => $a->id,
+                    'name'                   => $a->name,
+                    'value'                  => $a->value,
+                    'original_price'         => $originalPrice,
+                    'price'                  => $discountedPrice,
+                    'formatted_price'        => 'L.E ' . number_format($discountedPrice, 0),
+                    'formatted_original_price' => 'L.E ' . number_format($originalPrice, 0),
+                    'discount'               => $attributeDiscount,
+                    'stock'                  => $a->stock,
+                    'sku'                    => $a->sku,
+                ];
+            });
 
         // Use the smallest-size attribute price as the display price, fallback to base_price
-        $displayPrice = $attributes->isNotEmpty()
-            ? $attributes->sortBy('price')->first()['price']
-            : (float) $product->final_price;
+        if ($attributes->isNotEmpty()) {
+            // Product has attributes - use first attribute's price and discount
+            $firstAttr = $attributes->sortBy('price')->first();
+            $displayPrice = $firstAttr['price'];
+            $originalDisplayPrice = $firstAttr['original_price'];
+            $displayDiscount = $firstAttr['discount'];
+        } else {
+            // No attributes - use product's base price and discount
+            $originalDisplayPrice = (float) $product->base_price;
+            $displayPrice = (float) $product->final_price;
+            $displayDiscount = $productDiscount;
+        }
 
         $data = [
-            'id'              => $product->id,
-            'slug'            => $product->slug,
-            'title'           => $product->name,
-            'image'           => $this->resolveImageUrl($product->image),
-            'price'           => 'L.E ' . number_format($displayPrice, 0),
-            'base_price'      => (float) $product->base_price,
-            'final_price'     => (float) $product->final_price,
-            'discount'        => (float) $product->discount_percentage,
-            'reviews'         => (float) $product->rating,
-            'reviews_count'   => $product->reviews_count,
-            'description'     => $product->description,
-            'fragrance_notes' => $product->fragrance_notes,
-            'shipping_info'   => $product->shipping_info,
-            'is_featured'     => $product->is_featured,
-            'tags'            => $product->tags ?? [],
-            'attributes'      => $attributes->values(),
+            'id'                   => $product->id,
+            'slug'                 => $product->slug,
+            'title'                => $product->name,
+            'image'                => $this->resolveImageUrl($product->image),
+            'price'                => 'L.E ' . number_format($displayPrice, 0),
+            'original_price'       => 'L.E ' . number_format($originalDisplayPrice, 0),
+            'base_price'           => (float) $product->base_price,
+            'final_price'          => (float) $product->final_price,
+            'discount'             => $displayDiscount,  // Use calculated display discount
+            'has_attributes'       => $attributes->isNotEmpty(),
+            'reviews'              => (float) $product->rating,
+            'reviews_count'        => $product->reviews_count,
+            'description'          => $product->description,
+            'fragrance_notes'      => $product->fragrance_notes,
+            'shipping_info'        => $product->shipping_info,
+            'is_featured'          => $product->is_featured,
+            'is_suggested'         => $product->is_suggested,
+            'tags'                 => $product->tags ?? [],
+            'attributes'           => $attributes->values(),
         ];
 
-        if ($withCategory && $product->relationLoaded('category')) {
-            $data['category'] = $product->category ? [
-                'id'   => $product->category->id,
-                'name' => $product->category->name,
-                'slug' => $product->category->slug,
+        if ($withCategory && $product->relationLoaded('categories')) {
+            $data['categories'] = $product->categories->map(fn ($cat) => [
+                'id'   => $cat->id,
+                'name' => $cat->name,
+                'slug' => $cat->slug,
+            ])->values();
+            
+            // For backward compatibility, include the first category as 'category'
+            $data['category'] = $product->categories->first() ? [
+                'id'   => $product->categories->first()->id,
+                'name' => $product->categories->first()->name,
+                'slug' => $product->categories->first()->slug,
             ] : null;
         }
 

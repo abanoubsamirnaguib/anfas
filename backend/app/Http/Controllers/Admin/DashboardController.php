@@ -24,7 +24,7 @@ class DashboardController extends Controller
             'pending_messages' => WhatsappMessage::where('status', 'pending')->count(),
         ];
 
-        $recentProducts = Product::with(['category'])
+        $recentProducts = Product::with(['categories'])
             ->latest()
             ->take(5)
             ->get();

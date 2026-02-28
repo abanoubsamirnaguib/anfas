@@ -5,6 +5,7 @@ import {
   IonHeader,
   IonIcon,
   IonPage,
+  IonRouterLink,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -16,7 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { FilterModal } from '../components/FilterModal';
 import { ProductModal } from '../components/ProductModal';
-import { FALLBACK_IMG, productInfo } from '../utils';
+import { FALLBACK_IMG, productInfo, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { fetchCategory, fetchCategoryTags, fetchProducts } from '../services/api';
@@ -188,16 +189,18 @@ const Category = () => {
     return (
       <IonPage>
         <IonHeader className="ion-no-border">
-          <IonToolbar style={{ '--background': '#0C0C0C', '--border-color': 'transparent' }}>
+          <IonToolbar style={{ '--background': '#0C0C0C', '--border-color': 'transparent', '--min-height': '80px', height: '80px' }}>
             <IonButtons slot="start">
               <IonButton onClick={() => router.goBack()} style={{ '--color': '#C9A96E' }}>
                 <IonIcon icon={chevronBack} />
               </IonButton>
             </IonButtons>
             <IonTitle style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.1rem', letterSpacing: '0.18em', color: '#C9A96E', textAlign: 'center', textTransform: 'uppercase' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                <img src="/assets/perfume/anfas.jpg" alt="logo" style={{ width: '22px', height: '22px', objectFit: 'cover', borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
-                <span>{t('brand')}</span>
+              <div onClick={() => { router.push('/'); setTimeout(() => window.location.hash = 'hero-section', 100); }} style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                  <img src="/assets/perfume/anfas.png" alt="logo" style={{ height: '70px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
+                  {/* <span>{t('brand')}</span> */}
+                </div>
               </div>
             </IonTitle>
             <IonButtons slot="end"><LanguageToggle /></IonButtons>
@@ -226,16 +229,18 @@ const Category = () => {
   return (
     <IonPage>
       <IonHeader className="ion-no-border">
-        <IonToolbar style={{ '--background': '#0C0C0C', '--border-color': 'transparent' }}>
+        <IonToolbar style={{ '--background': '#0C0C0C', '--border-color': 'transparent', '--min-height': '80px', height: '80px' }}>
           <IonButtons slot="start">
             <IonButton onClick={() => router.goBack()} style={{ '--color': '#C9A96E' }}>
               <IonIcon icon={chevronBack} />
             </IonButton>
           </IonButtons>
           <IonTitle style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: '1.4rem', letterSpacing: '0.2em', color: '#C9A96E', textAlign: 'center', textTransform: 'uppercase' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <img src="/assets/perfume/anfas.jpg" alt="logo" style={{ width: '26px', height: '26px', objectFit: 'cover', borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
-              <span>{t('brand')}</span>
+            <div onClick={() => { router.push('/'); setTimeout(() => window.location.hash = 'hero-section', 100); }} style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <img src="/assets/perfume/anfas.png" alt="logo" style={{ height: '70px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
+                {/* <span>{t('brand')}</span> */}
+              </div>
             </div>
           </IonTitle>
           <IonButtons slot="end">
@@ -348,9 +353,16 @@ const Category = () => {
                         {product.title}
                       </p>
                       {product.reviews > 0 && <StarRating rating={product.reviews} />}
-                      <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: '4px 0 0' }}>
-                        {product.price}
-                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '4px 0 0' }}>
+                        {hasDiscount(product) && (
+                          <p style={{ color: '#6B6B6B', fontSize: '0.75rem', fontWeight: 400, margin: 0, textDecoration: 'line-through' }}>
+                            {getOriginalPrice(product)}
+                          </p>
+                        )}
+                        <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
+                          {getDisplayPrice(product)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

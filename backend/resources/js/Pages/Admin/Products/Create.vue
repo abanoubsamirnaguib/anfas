@@ -11,15 +11,21 @@
             <div class="max-w-3xl mx-auto">
                 <div class="bg-slate-900 border border-slate-800 overflow-hidden rounded-xl">
                     <form @submit.prevent="submit" class="p-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="category_id" class="block text-sm font-medium text-slate-300">Category *</label>
-                                <select v-model="form.category_id" id="category_id" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="">Select category...</option>
-                                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                                </select>
-                                <div v-if="form.errors.category_id" class="text-red-600 text-sm mt-1">{{ form.errors.category_id }}</div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Categories * (Select one or more)</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 p-3 border border-slate-700 rounded-md bg-slate-950">
+                                <div v-for="cat in categories" :key="cat.id" class="flex items-center">
+                                    <input
+                                        :id="'cat-' + cat.id"
+                                        type="checkbox"
+                                        :value="cat.id"
+                                        v-model="form.category_ids"
+                                        class="rounded border-slate-600 bg-slate-900 text-indigo-500 shadow-sm"
+                                    />
+                                    <label :for="'cat-' + cat.id" class="ml-2 block text-sm text-slate-200">{{ cat.name }}</label>
+                                </div>
                             </div>
+                            <div v-if="form.errors.category_ids" class="text-red-600 text-sm mt-1">{{ form.errors.category_ids }}</div>
                         </div>
 
                         <div>
@@ -111,6 +117,10 @@
                                 <input v-model="form.is_featured" type="checkbox" id="is_featured" class="rounded border-slate-600 bg-slate-900 text-indigo-500 shadow-sm">
                                 <label for="is_featured" class="ml-2 block text-sm text-slate-200">Featured</label>
                             </div>
+                            <div class="flex items-center">
+                                <input v-model="form.is_suggested" type="checkbox" id="is_suggested" class="rounded border-slate-600 bg-slate-900 text-indigo-500 shadow-sm">
+                                <label for="is_suggested" class="ml-2 block text-sm text-slate-200">Suggested</label>
+                            </div>
                         </div>
 
                         <!-- Tags -->
@@ -178,7 +188,7 @@ const props = defineProps({
 });
 
 const form = useForm({
-    category_id: '',
+    category_ids: [],
     name: '',
     slug: '',
     description: '',
@@ -192,6 +202,7 @@ const form = useForm({
     sort_order: 0,
     is_active: true,
     is_featured: false,
+    is_suggested: false,
     tags: [],
 });
 
@@ -199,16 +210,32 @@ const form = useForm({
 const tagInput = ref('');
 const categorySuggestions = ref([]);
 
-watch(() => form.category_id, async (catId) => {
-    if (!catId) { categorySuggestions.value = []; return; }
-    const cat = props.categories.find(c => c.id === catId);
-    if (!cat) return;
+// Load tag suggestions from all selected categories
+const loadTagSuggestions = async () => {
+    if (form.category_ids.length === 0) {
+        categorySuggestions.value = [];
+        return;
+    }
+
     try {
-        const res = await fetch(`/api/categories/${cat.slug}/tags`);
-        const data = await res.json();
-        categorySuggestions.value = Array.isArray(data) ? data : [];
-    } catch { categorySuggestions.value = []; }
-});
+        const allTags = new Set();
+        for (const catId of form.category_ids) {
+            const cat = props.categories.find(c => c.id === catId);
+            if (cat) {
+                const res = await fetch(`/api/categories/${cat.slug}/tags`);
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    data.forEach(tag => allTags.add(tag));
+                }
+            }
+        }
+        categorySuggestions.value = Array.from(allTags);
+    } catch {
+        categorySuggestions.value = [];
+    }
+};
+
+watch(() => form.category_ids, loadTagSuggestions, { deep: true });
 
 const addTag = () => {
     const val = tagInput.value.trim();

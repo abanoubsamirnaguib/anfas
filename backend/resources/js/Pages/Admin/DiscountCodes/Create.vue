@@ -38,7 +38,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-if="form.type === 'percentage'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="min_purchase" class="block text-sm font-medium text-slate-300">Min Purchase (€)</label>
                                 <input v-model.number="form.min_purchase" type="number" id="min_purchase" step="0.01" min="0" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">

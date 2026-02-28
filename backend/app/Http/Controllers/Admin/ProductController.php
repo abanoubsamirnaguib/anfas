@@ -13,11 +13,13 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category'])
+        $query = Product::with(['categories'])
             ->withCount('attributes');
 
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('categories.id', $request->category_id);
+            });
         }
 
         if ($request->filled('search')) {
@@ -47,9 +49,12 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         $validated = $request->validated();
+        $categoryIds = $validated['category_ids'];
+        unset($validated['category_ids']);
 
         $product = Product::create($validated);
-        $this->syncTagsToCategory($product);
+        $product->categories()->sync($categoryIds);
+        $this->syncTagsToCategories($product);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -57,7 +62,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load('attributes');
+        $product->load(['attributes', 'categories']);
         $categories = Category::where('is_active', true)->get();
 
         return Inertia::render('Admin/Products/Edit', [
@@ -69,27 +74,32 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product)
     {
         $validated = $request->validated();
+        $categoryIds = $validated['category_ids'];
+        unset($validated['category_ids']);
 
         $product->update($validated);
+        $product->categories()->sync($categoryIds);
         $product->refresh();
-        $this->syncTagsToCategory($product);
+        $this->syncTagsToCategories($product);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
     }
 
     /**
-     * Merge the product's tags into its category's tags list.
+     * Merge the product's tags into all its categories' tags lists.
      */
-    private function syncTagsToCategory(Product $product): void
+    private function syncTagsToCategories(Product $product): void
     {
         if (empty($product->tags)) return;
 
-        $category = $product->category ?? Category::find($product->category_id);
-        if (!$category) return;
+        $categories = $product->categories;
+        if ($categories->isEmpty()) return;
 
-        $merged = array_values(array_unique(array_merge($category->tags ?? [], $product->tags)));
-        $category->update(['tags' => $merged]);
+        foreach ($categories as $category) {
+            $merged = array_values(array_unique(array_merge($category->tags ?? [], $product->tags)));
+            $category->update(['tags' => $merged]);
+        }
     }
 
     public function destroy(Product $product)

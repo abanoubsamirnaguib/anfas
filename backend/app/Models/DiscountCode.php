@@ -57,20 +57,22 @@ class DiscountCode extends Model
 
     public function calculateDiscount($amount)
     {
-        if ($amount < $this->min_purchase) {
-            return 0;
-        }
-
         if ($this->type === 'percentage') {
+            // For percentage discounts, apply min_purchase and max_discount
+            if ($amount < $this->min_purchase) {
+                return 0;
+            }
+
             $discount = $amount * ($this->value / 100);
+
+            if ($this->max_discount && $discount > $this->max_discount) {
+                return $this->max_discount;
+            }
+
+            return $discount;
         } else {
-            $discount = $this->value;
+            // For fixed discounts, no min_purchase or max_discount constraints
+            return $this->value;
         }
-
-        if ($this->max_discount && $discount > $this->max_discount) {
-            return $this->max_discount;
-        }
-
-        return $discount;
     }
 }

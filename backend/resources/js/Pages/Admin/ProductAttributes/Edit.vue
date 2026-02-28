@@ -30,6 +30,13 @@
                         </div>
 
                         <div>
+                            <label for="discount_percentage" class="block text-sm font-medium text-slate-300">Discount (%)</label>
+                            <input v-model.number="form.discount_percentage" type="number" id="discount_percentage" step="0.01" min="0" max="100" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <p class="text-slate-500 text-xs mt-1">Individual discount for this attribute (overrides product discount)</p>
+                            <div v-if="form.errors.discount_percentage" class="text-red-600 text-sm mt-1">{{ form.errors.discount_percentage }}</div>
+                        </div>
+
+                        <div>
                             <label for="stock" class="block text-sm font-medium text-slate-300">Stock</label>
                             <input v-model.number="form.stock" type="number" id="stock" min="0" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
@@ -71,6 +78,7 @@ const form = useForm({
     name: props.attribute.name,
     value: props.attribute.value,
     price: props.attribute.price,
+    discount_percentage: props.attribute.discount_percentage ?? 0,
     stock: props.attribute.stock ?? '',
     sku: props.attribute.sku ?? '',
     is_active: props.attribute.is_active,

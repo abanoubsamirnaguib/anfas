@@ -23,7 +23,7 @@ import './theme/variables.css';
 import 'animate.css';
 
 import { pages } from './pages';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cartOutline } from 'ionicons/icons';
 import { useRef } from 'react';
 import { useStoreState } from 'pullstate';
@@ -38,7 +38,24 @@ const App = () => {
   const cartCount = useStoreState(CartStore, getCartCount);
   const [ selected, setSelected ] = useState("tab0");
   const [open, setOpen] = useState(false);
+  const [cartPulse, setCartPulse] = useState(false);
   const ref = useRef();
+
+  // Listen for custom events from AddToCartButton
+  const openCartHandler = useCallback(() => setOpen(true), []);
+  const pulseCartHandler = useCallback(() => {
+    setCartPulse(true);
+    setTimeout(() => setCartPulse(false), 800);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('open-cart', openCartHandler);
+    window.addEventListener('cart-item-added', pulseCartHandler);
+    return () => {
+      window.removeEventListener('open-cart', openCartHandler);
+      window.removeEventListener('cart-item-added', pulseCartHandler);
+    };
+  }, [openCartHandler, pulseCartHandler]);
 
   const handleClick = tab => {
 
@@ -79,8 +96,8 @@ const App = () => {
             })}
 
             <IonTabButton tab="tabCart">
-              <IonIcon icon={cartOutline} />
-              <div className="cart-count">{cartCount}</div>
+              <IonIcon icon={cartOutline} className={cartPulse ? 'cart-icon-pulse' : ''} />
+              <div className={`cart-count${cartPulse ? ' cart-count-pulse' : ''}`}>{cartCount}</div>
             </IonTabButton>
           </IonTabBar>
 

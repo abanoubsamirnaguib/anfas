@@ -78,6 +78,14 @@ export async function fetchFeaturedProducts(perPage = 10) {
 }
 
 /**
+ * Fetch suggested products across all categories.
+ * @param {number} perPage  - Max number of suggested products to return (default 10)
+ */
+export async function fetchSuggestedProducts(perPage = 10) {
+  return apiFetch(`/products/suggested?per_page=${perPage}`);
+}
+
+/**
  * Fetch a single product by slug.
  */
 export async function fetchProduct(productSlug) {

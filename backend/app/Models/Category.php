@@ -37,8 +37,11 @@ class Category extends Model
         });
     }
 
+    /**
+     * A category can have multiple products
+     */
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsToMany(Product::class);
     }
 }

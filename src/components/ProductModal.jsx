@@ -5,8 +5,9 @@ import {
   IonFooter,
   IonIcon,
   IonToolbar,
+  IonToast,
 } from '@ionic/react';
-import { closeOutline, heart, heartOutline, starSharp } from 'ionicons/icons';
+import { closeOutline, heart, heartOutline, starSharp, shareOutline } from 'ionicons/icons';
 import { useStoreState } from 'pullstate';
 import { useState, useMemo } from 'react';
 
@@ -16,7 +17,7 @@ import { FavouritesStore } from '../store';
 import { ProductSpecificationsAccordion } from './ProductSpecificationsAccordion';
 import { AddToCartButton } from './AddToCartButton';
 import './ProductModal.css';
-import { FALLBACK_IMG } from '../utils';
+import { FALLBACK_IMG, sortProductAttributes, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 
 const StarRow = ({ rating }) => (
@@ -36,24 +37,31 @@ const StarRow = ({ rating }) => (
 );
 
 export const ProductModal = (props) => {
-  const { dismiss, category = false, product } = props;
+  const { dismiss, category: categoryProp = false, product } = props;
   const isFavourite = useStoreState(FavouritesStore, checkFavourites(product));
   const { t } = useI18n();
+  const [showToast, setShowToast] = useState(false);
+
+  // Determine category: use prop first, fallback to product's category
+  const category = categoryProp || product?.category?.slug;
 
   // Build size options from product attributes (real backend data) or fall back to hardcoded
   const sizeOptions = useMemo(() => {
-    const attrs = Array.isArray(product?.attributes) ? product.attributes : [];
-    if (attrs.length > 0) {
-      return attrs.map((a) => ({
+    const sortedAttrs = sortProductAttributes(product);
+    if (sortedAttrs.length > 0) {
+      return sortedAttrs.map((a) => ({
         label: a.name,
         value: a.value,
         formatted_price: a.formatted_price,
+        formatted_original_price: a.formatted_original_price,
         price: a.price,
+        original_price: a.original_price,
+        discount: a.discount || 0,
       }));
     }
     // Static fallback (match accordion structure)
     return [
-      { label: 'Standard', value: '', formatted_price: null },
+      { label: 'Standard', value: '', formatted_price: null, discount: product.discount || 0 },
     ];
   }, [product?.attributes]);
 
@@ -68,6 +76,63 @@ export const ProductModal = (props) => {
   const displayPrice = selectedAttr?.formatted_price || selectedAttr?.price
     ? (selectedAttr.formatted_price || `L.E ${Math.round(selectedAttr.price)}`)
     : product.price;
+  
+  // Get original price and discount from selected attribute
+  const originalPrice = useMemo(() => {
+    // Check if selected attribute has a discount
+    const attrDiscount = selectedAttr?.discount || 0;
+    
+    if (attrDiscount > 0) {
+      // Use attribute's original price
+      return selectedAttr?.formatted_original_price || 
+             (selectedAttr?.original_price ? `L.E ${Math.round(selectedAttr.original_price)}` : null);
+    }
+    
+    // Check if product has discount (for products without attributes)
+    if (product.discount > 0 && !product.has_attributes) {
+      return product.original_price;
+    }
+    
+    return null;
+  }, [selectedAttr, product]);
+  
+  const activeDiscount = selectedAttr?.discount || (product.has_attributes ? 0 : product.discount) || 0;
+
+  // Handle share functionality
+  const handleShare = async () => {
+    const productUrl = product?.slug && category 
+      ? `${window.location.origin}/categories/${category}/products/${product.slug}`
+      : window.location.href;
+    
+    const shareData = {
+      title: product.title,
+      text: product.description || product.title,
+      url: productUrl,
+    };
+
+    try {
+      // Try using Web Share API if available
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(productUrl);
+        setShowToast(true);
+      }
+    } catch (err) {
+      // User cancelled or error occurred
+      if (err.name !== 'AbortError') {
+        console.error('Error sharing:', err);
+        // Try clipboard as fallback
+        try {
+          await navigator.clipboard.writeText(productUrl);
+          setShowToast(true);
+        } catch (clipErr) {
+          console.error('Error copying to clipboard:', clipErr);
+        }
+      }
+    }
+  };
 
   return (
     <>
@@ -93,6 +158,26 @@ export const ProductModal = (props) => {
               background: 'linear-gradient(0deg, #0C0C0C, transparent)',
             }}
           />
+
+          {/* Discount badge */}
+          {activeDiscount > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                right: '12px',
+                background: '#C9A96E',
+                color: '#0C0C0C',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                padding: '5px 10px',
+                borderRadius: '3px',
+              }}
+            >
+              -{Math.round(activeDiscount)}% OFF
+            </div>
+          )}
 
           {/* Close button */}
           <IonButtons
@@ -135,6 +220,28 @@ export const ProductModal = (props) => {
               }}
             >
               <IonIcon icon={isFavourite ? heart : heartOutline} style={{ fontSize: '1.3rem' }} />
+            </IonButton>
+          </IonButtons>
+
+          {/* Share button */}
+          <IonButtons
+            style={{
+              position: 'absolute',
+              top: '12px',
+              left: '60px',
+            }}
+          >
+            <IonButton
+              onClick={handleShare}
+              style={{
+                '--background': 'rgba(12,12,12,0.7)',
+                '--color': '#F5F0E8',
+                '--border-radius': '50%',
+                '--padding-start': '6px',
+                '--padding-end': '6px',
+              }}
+            >
+              <IonIcon icon={shareOutline} style={{ fontSize: '1.3rem' }} />
             </IonButton>
           </IonButtons>
         </div>
@@ -253,17 +360,33 @@ export const ProductModal = (props) => {
               <p style={{ margin: 0, color: '#7A7A7A', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {t('product.price')}
               </p>
-              <p
-                style={{
-                  margin: 0,
-                  color: '#C9A96E',
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '1.3rem',
-                  fontWeight: 400,
-                }}
-              >
-                {displayPrice}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {originalPrice && (
+                  <p
+                    style={{
+                      margin: 0,
+                      color: '#6B6B6B',
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: '1rem',
+                      fontWeight: 400,
+                      textDecoration: 'line-through',
+                    }}
+                  >
+                    {originalPrice}
+                  </p>
+                )}
+                <p
+                  style={{
+                    margin: 0,
+                    color: '#C9A96E',
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '1.3rem',
+                    fontWeight: 400,
+                  }}
+                >
+                  {displayPrice}
+                </p>
+              </div>
             </div>
             <div style={{ flex: 1 }}>
               <AddToCartButton product={{ ...product, price: displayPrice }} size={selectedSize} />
@@ -271,6 +394,16 @@ export const ProductModal = (props) => {
           </div>
         </IonToolbar>
       </IonFooter>
+
+      {/* Toast for clipboard copy */}
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message={t('product.linkCopied', null, 'Link copied to clipboard!')}
+        duration={2000}
+        position="bottom"
+        color="success"
+      />
     </>
   );
 };

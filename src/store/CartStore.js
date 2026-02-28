@@ -60,3 +60,9 @@ export const removeFromCart = (product) => {
         s.cart = currentCart.filter((_, i) => i !== idx);
     });
 };
+
+export const clearCart = () => {
+    CartStore.update(s => {
+        s.cart = [];
+    });
+};

@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::get('categories/{category:slug}/products', [ProductController::class, 'index']);
     Route::get('categories/{categorySlug}/tags', [ProductController::class, 'tags']);
     Route::get('products/featured', [ProductController::class, 'featured']);
+    Route::get('products/suggested', [ProductController::class, 'suggested']);
     Route::get('products/{product:slug}', [ProductController::class, 'show']);
     
     // Discount Codes
