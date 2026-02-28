@@ -27,6 +27,7 @@ class BannerSlideController extends Controller
     {
         $validated = $request->validate([
             'image_url'  => 'required|string|url',
+            'video_url'  => 'nullable|string|url',
             'link_url'   => 'nullable|string',
             'title'      => 'nullable|string|max:255',
             'subtitle'   => 'nullable|string|max:255',
@@ -51,6 +52,7 @@ class BannerSlideController extends Controller
     {
         $validated = $request->validate([
             'image_url'  => 'required|string|url',
+            'video_url'  => 'nullable|string|url',
             'link_url'   => 'nullable|string',
             'title'      => 'nullable|string|max:255',
             'subtitle'   => 'nullable|string|max:255',

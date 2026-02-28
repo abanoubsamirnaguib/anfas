@@ -183,7 +183,7 @@ const Favourites = () => {
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {hasDiscount(product) && (
-                            <p style={{ color: '#6B6B6B', fontSize: '0.75rem', fontWeight: 400, margin: 0, textDecoration: 'line-through' }}>
+                            <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: 0, textDecoration: 'line-through' }}>
                               {getOriginalPrice(product)}
                             </p>
                           )}

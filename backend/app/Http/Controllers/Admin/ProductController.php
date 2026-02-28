@@ -49,11 +49,13 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         $validated = $request->validated();
-        $categoryIds = $validated['category_ids'];
-        unset($validated['category_ids']);
+        $categoryIds   = $validated['category_ids'];
+        $galleryImages = $validated['gallery_images'] ?? [];
+        unset($validated['category_ids'], $validated['gallery_images']);
 
         $product = Product::create($validated);
         $product->categories()->sync($categoryIds);
+        $this->syncGalleryImages($product, $galleryImages);
         $this->syncTagsToCategories($product);
 
         return redirect()->route('admin.products.index')
@@ -62,7 +64,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load(['attributes', 'categories']);
+        $product->load(['attributes', 'categories', 'images']);
         $categories = Category::where('is_active', true)->get();
 
         return Inertia::render('Admin/Products/Edit', [
@@ -74,16 +76,34 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product)
     {
         $validated = $request->validated();
-        $categoryIds = $validated['category_ids'];
-        unset($validated['category_ids']);
+        $categoryIds   = $validated['category_ids'];
+        $galleryImages = $validated['gallery_images'] ?? [];
+        unset($validated['category_ids'], $validated['gallery_images']);
 
         $product->update($validated);
         $product->categories()->sync($categoryIds);
+        $this->syncGalleryImages($product, $galleryImages);
         $product->refresh();
         $this->syncTagsToCategories($product);
 
-        return redirect()->route('admin.products.index')
+        return redirect()->route('admin.products.edit', $product)
             ->with('success', 'Product updated successfully.');
+    }
+
+    /**
+     * Sync gallery images: replace all existing gallery images with the submitted list.
+     */
+    private function syncGalleryImages(Product $product, array $images): void
+    {
+        $product->images()->delete();
+
+        foreach ($images as $i => $img) {
+            $product->images()->create([
+                'url'        => $img['url'],
+                'alt_text'   => $img['alt_text'] ?? null,
+                'sort_order' => $img['sort_order'] ?? $i,
+            ]);
+        }
     }
 
     /**

@@ -28,7 +28,7 @@ const {
   IonModal,
   useIonToast,
 } = require("@ionic/react");
-const { closeOutline, trashOutline, addOutline } = require("ionicons/icons");
+const { closeOutline, trashOutline } = require("ionicons/icons");
 
 export const CartModal = (props) => {
   const cart = useStoreState(CartStore, getCart);
@@ -37,6 +37,7 @@ export const CartModal = (props) => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   const [present] = useIonToast();
 
   // Discount coupon state
@@ -128,8 +129,8 @@ export const CartModal = (props) => {
 
   const handleCheckout = async () => {
     if (!cart || cart.length === 0) return;
-    if (!name.trim() || !address.trim() || !phone.trim()) {
-      window.alert((t && t('cart.fillDetails')) || 'Please enter your name, address and phone number before checkout.');
+    if (!name.trim() || !address.trim() || !phone.trim() || !whatsappNumber.trim()) {
+      window.alert((t && t('cart.fillDetails')) || 'Please enter your name, address, phone number, and WhatsApp number before checkout.');
       return;
     }
 
@@ -143,6 +144,7 @@ export const CartModal = (props) => {
     lines.push(' ');
     lines.push(`${t('cart.name')}: ${name}`);
     lines.push(`${t('cart.phone')}: ${phone}`);
+    lines.push(`${t('cart.whatsappNumber')}: ${whatsappNumber}`);
     lines.push(`${t('cart.address')}: ${address}`);
     lines.push(' ');
     lines.push(` ${t('cart.items')} : `);
@@ -166,6 +168,11 @@ export const CartModal = (props) => {
 
     const message = lines.join('\n');
 
+    // Build the WhatsApp URL and open the window NOW (inside user-gesture context)
+    // so browsers won't block it. We'll navigate it to the real URL after the API call.
+    const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+    const waWindow = window.open('about:blank', '_blank');
+
     try {
       // map cart items to order_details expected by the API
       const order_details = cart.map(i => {
@@ -187,6 +194,7 @@ export const CartModal = (props) => {
       const apiPayload = {
         customer_name: name,
         customer_phone: phone,
+        customer_whatsapp: whatsappNumber,
         customer_address: address,
         message: message,
         order_details: order_details,
@@ -201,8 +209,13 @@ export const CartModal = (props) => {
       console.error('Failed to save whatsapp message:', err);
     }
 
-    const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    // Navigate the already-opened window to the WhatsApp URL
+    if (waWindow) {
+      waWindow.location.href = url;
+    } else {
+      // Fallback: if pop-up was still blocked, navigate current tab
+      window.location.href = url;
+    }
     
     // Show success toast
     present({
@@ -538,6 +551,11 @@ export const CartModal = (props) => {
                       >
                         {product.title}
                       </p>
+                      {product.description && (
+                        <p style={{ fontSize: '0.6rem', color: '#7A7A7A', margin: '2px 0 0', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {product.description}
+                        </p>
+                      )}
                       <p style={{
                         color: '#C9A96E',
                         fontSize: '0.65rem',
@@ -571,13 +589,13 @@ export const CartModal = (props) => {
                         onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                       >
-                        <IonIcon
-                          icon={addOutline}
-                          style={{
-                            color: '#0C0C0C',
-                            fontSize: '0.95rem',
-                          }}
-                        />
+                        {/* Shopping bag + plus icon */}
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#0C0C0C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                          <line x1="3" y1="6" x2="21" y2="6" />
+                          <line x1="12" y1="11" x2="12" y2="17" />
+                          <line x1="9" y1="14" x2="15" y2="14" />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -601,6 +619,7 @@ export const CartModal = (props) => {
           <div style={{ marginBottom: '0.75rem' }}>
             <IonInput placeholder={(t && t('cart.name')) || 'Name'} value={name} onIonChange={e => setName(e.detail.value)} style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem', background: '#0C0C0C', color: '#F5F0E8' }} />
             <IonInput placeholder={(t && t('cart.phone')) || 'Phone'} value={phone} onIonChange={e => setPhone(e.detail.value)} style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem', background: '#0C0C0C', color: '#F5F0E8' }} />
+            <IonInput placeholder={(t && t('cart.whatsappNumber')) || 'WhatsApp Number'} value={whatsappNumber} onIonChange={e => setWhatsappNumber(e.detail.value)} style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem', background: '#0C0C0C', color: '#F5F0E8' }} />
             <IonInput placeholder={(t && t('cart.address')) || 'Address'} value={address} onIonChange={e => setAddress(e.detail.value)} style={{ width: '100%', padding: '0.5rem', background: '#0C0C0C', color: '#F5F0E8' }} />
           </div>
 

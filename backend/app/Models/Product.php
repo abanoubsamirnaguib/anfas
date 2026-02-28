@@ -87,6 +87,14 @@ class Product extends Model
     }
 
     /**
+     * Additional gallery images for this product.
+     */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
      * Calculate final price based on discount percentage
      * Note: This applies to base_price only. For actual selling, use attribute prices.
      */

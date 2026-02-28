@@ -27,9 +27,12 @@ class ProductController extends Controller
                 $q->where('slug', $categorySlug)->where('is_active', true);
             })
             ->where('is_active', true)
-            ->with(['attributes' => function ($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
-            }]);
+            ->with([
+                'attributes' => function ($q) {
+                    $q->where('is_active', true)->orderBy('sort_order');
+                },
+                'images',
+            ]);
 
             if ($search) {
                 $query->where('name', 'like', "%{$search}%");
@@ -75,6 +78,7 @@ class ProductController extends Controller
             ->with([
                 'categories',
                 'attributes' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                'images',
             ])
             ->orderBy('sort_order')
             ->limit($perPage)
@@ -98,6 +102,7 @@ class ProductController extends Controller
             ->with([
                 'categories',
                 'attributes' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                'images',
             ])
             ->orderBy('sort_order')
             ->limit($perPage)
@@ -152,6 +157,7 @@ class ProductController extends Controller
             'attributes' => function ($query) {
                 $query->where('is_active', true)->orderBy('sort_order');
             },
+            'images',
         ]);
 
         $data = $this->formatProduct($product, true);
@@ -214,6 +220,13 @@ class ProductController extends Controller
             'slug'                 => $product->slug,
             'title'                => $product->name,
             'image'                => $this->resolveImageUrl($product->image),
+            'images'               => ($product->relationLoaded('images') ? $product->images : collect())
+                ->map(fn ($img) => [
+                    'id'         => $img->id,
+                    'url'        => $this->resolveImageUrl($img->url),
+                    'alt_text'   => $img->alt_text,
+                    'sort_order' => $img->sort_order,
+                ])->values(),
             'price'                => 'L.E ' . number_format($displayPrice, 0),
             'original_price'       => 'L.E ' . number_format($originalDisplayPrice, 0),
             'base_price'           => (float) $product->base_price,

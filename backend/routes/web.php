@@ -5,8 +5,10 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountCodeController;
 use App\Http\Controllers\Admin\ImageUploadController;
+use App\Http\Controllers\Admin\VideoUploadController;
 use App\Http\Controllers\Admin\ProductAttributeController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\WhatsappMessageController;
 use App\Http\Controllers\ProfileController;
@@ -39,6 +41,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     // Image Upload (WebP conversion)
     Route::post('upload-image', [ImageUploadController::class, 'store'])->name('upload-image');
 
+    // Video Upload (max 25 MB)
+    Route::post('upload-video', [VideoUploadController::class, 'store'])->name('upload-video');
+
     // Categories
     Route::resource('categories', CategoryController::class);
 
@@ -53,6 +58,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
         Route::get('attributes/{attribute}', [ProductAttributeController::class, 'edit'])->name('attributes.edit');
         Route::put('attributes/{attribute}', [ProductAttributeController::class, 'update'])->name('attributes.update');
         Route::delete('attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->name('attributes.destroy');
+
+        // Product Images
+        Route::get('images', [ProductImageController::class, 'index'])->name('images.index');
+        Route::post('images', [ProductImageController::class, 'store'])->name('images.store');
+        Route::put('images/{image}', [ProductImageController::class, 'update'])->name('images.update');
+        Route::delete('images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
     });
 
     // Discount Codes

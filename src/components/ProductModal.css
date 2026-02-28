@@ -4,6 +4,15 @@ ion-modal {
   --background: #0C0C0C;
 }
 
+/* Hide scrollbar in the product image gallery strip */
+.product-gallery-strip::-webkit-scrollbar,
+.product-gallery-strip::-webkit-scrollbar-track,
+.product-gallery-strip::-webkit-scrollbar-thumb {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 ion-accordion-group {
   background: transparent;
 }

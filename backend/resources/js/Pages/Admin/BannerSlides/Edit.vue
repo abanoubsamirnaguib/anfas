@@ -19,6 +19,13 @@
                             <div v-if="form.errors.image_url" class="text-red-500 text-sm mt-1">{{ form.errors.image_url }}</div>
                         </div>
 
+                        <!-- Video Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Slide Video <span class="text-slate-500 font-normal">(optional — replaces image when set)</span></label>
+                            <VideoUpload v-model="form.video_url" folder="banner-videos" />
+                            <div v-if="form.errors.video_url" class="text-red-500 text-sm mt-1">{{ form.errors.video_url }}</div>
+                        </div>
+
                         <!-- Link URL -->
                         <div>
                             <label for="link_url" class="block text-sm font-medium text-slate-300">Link URL</label>
@@ -75,6 +82,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ImageUpload from '@/Components/Admin/ImageUpload.vue';
+import VideoUpload from '@/Components/Admin/VideoUpload.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -83,6 +91,7 @@ const props = defineProps({
 
 const form = useForm({
     image_url:  props.slide.image_url,
+    video_url:  props.slide.video_url  ?? '',
     link_url:   props.slide.link_url  ?? '',
     title:      props.slide.title     ?? '',
     subtitle:   props.slide.subtitle  ?? '',

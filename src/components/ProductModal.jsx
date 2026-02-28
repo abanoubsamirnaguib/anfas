@@ -9,7 +9,7 @@ import {
 } from '@ionic/react';
 import { closeOutline, heart, heartOutline, starSharp, shareOutline } from 'ionicons/icons';
 import { useStoreState } from 'pullstate';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 
 import { checkFavourites } from '../store/Selectors';
 import { addToFavourites } from '../store/FavouritesStore';
@@ -41,6 +41,33 @@ export const ProductModal = (props) => {
   const isFavourite = useStoreState(FavouritesStore, checkFavourites(product));
   const { t } = useI18n();
   const [showToast, setShowToast] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const galleryRef = useRef(null);
+
+  // Build gallery: gallery images array + cover image merged, deduplicated
+  const galleryImages = useMemo(() => {
+    const extra = Array.isArray(product?.images) ? product.images : [];
+    if (extra.length > 0) {
+      const coverUrl = product?.image || null;
+      const hasMain = extra.some((img) => img.url === coverUrl);
+      if (coverUrl && !hasMain) {
+        return [{ id: 'cover', url: coverUrl, alt_text: product.title }, ...extra];
+      }
+      return extra;
+    }
+    return product?.image ? [{ id: 'cover', url: product.image, alt_text: product.title }] : [];
+  }, [product?.images, product?.image]);
+
+  const handleGalleryScroll = useCallback(() => {
+    if (!galleryRef.current) return;
+    const { scrollLeft, offsetWidth } = galleryRef.current;
+    setActiveSlide(Math.round(scrollLeft / offsetWidth));
+  }, []);
+
+  const scrollToSlide = (index) => {
+    if (!galleryRef.current) return;
+    galleryRef.current.scrollTo({ left: index * galleryRef.current.offsetWidth, behavior: 'smooth' });
+  };
 
   // Determine category: use prop first, fallback to product's category
   const category = categoryProp || product?.category?.slug;
@@ -138,24 +165,59 @@ export const ProductModal = (props) => {
     <>
       <IonContent style={{ '--background': '#0C0C0C' }}>
 
-        {/* ── Product Image ── */}
+        {/* ── Image Gallery Slider ── */}
         <div style={{ position: 'relative' }}>
-          <img
-            src={product.image}
-            alt={product.title}
-            referrerPolicy="no-referrer"
-            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
-            style={{ width: '100%', height: '320px', objectFit: 'cover', display: 'block' }}
-          />
-          {/* Gradient overlay */}
+
+          {/* Scrollable strip */}
+          <div
+            ref={galleryRef}
+            onScroll={handleGalleryScroll}
+            className="product-gallery-strip"
+            style={{
+              display: 'flex',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              height: '320px',
+            }}
+          >
+            {galleryImages.length > 0 ? galleryImages.map((img, idx) => (
+              <img
+                key={img.id ?? idx}
+                src={img.url}
+                alt={img.alt_text || product.title}
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                style={{
+                  flexShrink: 0,
+                  width: '100%',
+                  height: '320px',
+                  objectFit: 'cover',
+                  display: 'block',
+                  scrollSnapAlign: 'start',
+                }}
+              />
+            )) : (
+              <img
+                src={FALLBACK_IMG}
+                alt={product.title}
+                style={{ flexShrink: 0, width: '100%', height: '320px', objectFit: 'cover', display: 'block', scrollSnapAlign: 'start' }}
+              />
+            )}
+          </div>
+
+          {/* Gradient overlay — shortened so it doesn't cover thumbnails area */}
           <div
             style={{
               position: 'absolute',
               bottom: 0,
               left: 0,
               right: 0,
-              height: '80px',
+              height: '60px',
               background: 'linear-gradient(0deg, #0C0C0C, transparent)',
+              pointerEvents: 'none',
             }}
           />
 
@@ -245,6 +307,53 @@ export const ProductModal = (props) => {
             </IonButton>
           </IonButtons>
         </div>
+
+        {/* ── Thumbnail Strip ── */}
+        {galleryImages.length > 1 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              overflowX: 'auto',
+              background: '#0C0C0C',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+            className="product-gallery-strip"
+          >
+            {galleryImages.map((img, i) => (
+              <button
+                key={img.id ?? i}
+                onClick={() => scrollToSlide(i)}
+                aria-label={`View image ${i + 1}`}
+                style={{
+                  flexShrink: 0,
+                  width: '52px',
+                  height: '52px',
+                  padding: 0,
+                  border: i === activeSlide ? '2px solid #C9A96E' : '2px solid transparent',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  outline: 'none',
+                  opacity: i === activeSlide ? 1 : 0.5,
+                  transition: 'border-color 0.2s, opacity 0.2s',
+                }}
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt_text || `Image ${i + 1}`}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* ── Product Details ── */}
         <div style={{ padding: '1.25rem 1.25rem 0' }}>
@@ -365,10 +474,10 @@ export const ProductModal = (props) => {
                   <p
                     style={{
                       margin: 0,
-                      color: '#6B6B6B',
+                      color: '#EF4444',
                       fontFamily: "'Cormorant Garamond', serif",
                       fontSize: '1rem',
-                      fontWeight: 400,
+                      fontWeight: 700,
                       textDecoration: 'line-through',
                     }}
                   >

@@ -202,13 +202,24 @@ const Categories = () => {
             const isExternal = slide.link_url && (slide.link_url.startsWith('http://') || slide.link_url.startsWith('https://'));
             const inner = (
               <>
-                <img
-                  src={slide.image_url}
-                  alt={slide.title || `slide-${idx}`}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
+                {slide.video_url ? (
+                  <video
+                    src={slide.video_url}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <img
+                    src={slide.image_url}
+                    alt={slide.title || `slide-${idx}`}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                )}
                 {(slide.title || slide.subtitle) && (
                   <div
                     style={{
@@ -388,12 +399,18 @@ const Categories = () => {
                           >
                             {product.title}
                           </p>
+                          {product.description && (
+                            <p style={{ fontSize: '0.65rem', color: '#7A7A7A', margin: '0 0 4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {product.description}
+                            </p>
+                          )}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                             {hasDiscount(product) && (
                               <p
                                 style={{
                                   fontSize: '0.7rem',
-                                  color: '#6B6B6B',
+                                  color: '#EF4444',
+                                  fontWeight: 700,
                                   margin: 0,
                                   textDecoration: 'line-through',
                                 }}

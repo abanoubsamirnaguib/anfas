@@ -352,10 +352,15 @@ const Category = () => {
                       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.9rem', color: '#F5F0E8', margin: 0, marginBottom: '3px', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {product.title}
                       </p>
+                      {product.description && (
+                        <p style={{ fontSize: '0.7rem', color: '#7A7A7A', margin: '0 0 4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {product.description}
+                        </p>
+                      )}
                       {product.reviews > 0 && <StarRating rating={product.reviews} />}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '4px 0 0' }}>
                         {hasDiscount(product) && (
-                          <p style={{ color: '#6B6B6B', fontSize: '0.75rem', fontWeight: 400, margin: 0, textDecoration: 'line-through' }}>
+                          <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: 0, textDecoration: 'line-through' }}>
                             {getOriginalPrice(product)}
                           </p>
                         )}

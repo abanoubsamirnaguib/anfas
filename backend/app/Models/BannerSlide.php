@@ -11,6 +11,7 @@ class BannerSlide extends Model
 
     protected $fillable = [
         'image_url',
+        'video_url',
         'link_url',
         'title',
         'subtitle',

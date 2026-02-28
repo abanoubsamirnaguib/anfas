@@ -43,6 +43,10 @@ class ProductRequest extends FormRequest
             'is_suggested'         => ['boolean'],
             'tags'                 => ['nullable', 'array'],
             'tags.*'               => ['string', 'max:100'],
+            'gallery_images'       => ['nullable', 'array'],
+            'gallery_images.*.url' => ['required', 'string', 'max:500'],
+            'gallery_images.*.alt_text'   => ['nullable', 'string', 'max:255'],
+            'gallery_images.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

@@ -45,9 +45,17 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-1">Product Image</label>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Cover Image</label>
                             <ImageUpload v-model="form.image" />
                             <div v-if="form.errors.image" class="text-red-600 text-sm mt-1">{{ form.errors.image }}</div>
+                        </div>
+
+                        <!-- Gallery Images -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">Gallery Images</label>
+                            <p class="text-xs text-slate-500 mb-3">Upload multiple images shown as a swipeable slider in the app. Hover an image to reorder or remove it.</p>
+                            <GalleryUpload v-model="form.gallery_images" />
+                            <div v-if="form.errors.gallery_images" class="text-red-600 text-sm mt-1">{{ form.errors.gallery_images }}</div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -180,6 +188,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ImageUpload from '@/Components/Admin/ImageUpload.vue';
+import GalleryUpload from '@/Components/Admin/GalleryUpload.vue';
 import { ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
@@ -193,6 +202,7 @@ const form = useForm({
     slug: '',
     description: '',
     image: '',
+    gallery_images: [],
     base_price: 0,
     discount_percentage: 0,
     rating: 0,

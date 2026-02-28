@@ -34,7 +34,8 @@
                                 </tr>
                                 <tr v-for="slide in slides" :key="slide.id">
                                     <td class="px-4 py-3">
-                                        <img :src="slide.image_url" alt="slide" class="w-20 h-12 object-cover rounded border border-slate-700" />
+                                        <video v-if="slide.video_url" :src="slide.video_url" class="w-20 h-12 object-cover rounded border border-slate-700" muted preload="metadata" />
+                                        <img v-else :src="slide.image_url" alt="slide" class="w-20 h-12 object-cover rounded border border-slate-700" />
                                     </td>
                                     <td class="px-4 py-3 text-sm text-slate-200">{{ slide.title || '—' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-400 max-w-[200px] truncate">{{ slide.link_url || '—' }}</td>
