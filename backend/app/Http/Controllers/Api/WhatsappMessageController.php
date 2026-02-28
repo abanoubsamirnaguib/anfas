@@ -13,8 +13,10 @@ class WhatsappMessageController extends Controller
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
+            'customer_whatsapp' => 'nullable|string|max:30',
             'customer_address' => 'required|string',
             'message' => 'required|string',
+            'channel' => 'nullable|string|in:whatsapp,instagram',
             'order_details' => 'required|array',
             // allow product/attribute ids to be nullable for public API submissions
             'order_details.*.product_id' => 'nullable|exists:products,id',

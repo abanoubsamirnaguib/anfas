@@ -47,15 +47,41 @@ export const CartModal = (props) => {
   const [discountError, setDiscountError] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [waPhone, setWaPhone] = useState('201234567899');
+  const [igUsername, setIgUsername] = useState('');
+  const [sendChannel, setSendChannel] = useState('whatsapp'); // 'whatsapp' | 'instagram'
 
   // Suggested products state
   const [suggestedProducts, setSuggestedProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
 
+  // Derived: which channels are available based on admin settings
+  const hasWhatsapp = !!waPhone;
+  const hasInstagram = !!igUsername;
+
+  // Extract Instagram username from a URL like https://instagram.com/yourprofile
+  const parseIgUsername = (url) => {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      const parts = u.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+      return parts.length > 0 ? parts[parts.length - 1].replace(/^@/, '') : '';
+    } catch {
+      // Not a URL, treat as plain username
+      return url.replace(/^@/, '').trim();
+    }
+  };
+
   useEffect(() => {
     fetchSettings().then(s => {
       if (s?.whatsapp_phone) setWaPhone(s.whatsapp_phone);
+      const username = parseIgUsername(s?.social_instagram);
+      if (username) setIgUsername(username);
+      // Auto-select the only available channel
+      const wa = !!s?.whatsapp_phone;
+      const ig = !!username;
+      if (ig && !wa) setSendChannel('instagram');
+      else setSendChannel('whatsapp');
     }).catch(() => {});
 
     // Fetch suggested products
@@ -129,9 +155,19 @@ export const CartModal = (props) => {
 
   const handleCheckout = async () => {
     if (!cart || cart.length === 0) return;
-    if (!name.trim() || !address.trim() || !phone.trim() || !whatsappNumber.trim()) {
-      window.alert((t && t('cart.fillDetails')) || 'Please enter your name, address, phone number, and WhatsApp number before checkout.');
-      return;
+    
+    // For WhatsApp channel, require whatsapp number
+    if (sendChannel === 'whatsapp') {
+      if (!name.trim() || !address.trim() || !phone.trim() || !whatsappNumber.trim()) {
+        window.alert((t && t('cart.fillDetails')) || 'Please enter your name, address, phone number, and WhatsApp number before checkout.');
+        return;
+      }
+    } else {
+      // For Instagram, whatsapp number is optional
+      if (!name.trim() || !address.trim() || !phone.trim()) {
+        window.alert((t && t('cart.fillDetails')) || 'Please enter your name, address, and phone number before checkout.');
+        return;
+      }
     }
 
     const fmt = (n) => {
@@ -144,7 +180,9 @@ export const CartModal = (props) => {
     lines.push(' ');
     lines.push(`${t('cart.name')}: ${name}`);
     lines.push(`${t('cart.phone')}: ${phone}`);
-    lines.push(`${t('cart.whatsappNumber')}: ${whatsappNumber}`);
+    if (whatsappNumber.trim()) {
+      lines.push(`${t('cart.whatsappNumber')}: ${whatsappNumber}`);
+    }
     lines.push(`${t('cart.address')}: ${address}`);
     lines.push(' ');
     lines.push(` ${t('cart.items')} : `);
@@ -168,10 +206,16 @@ export const CartModal = (props) => {
 
     const message = lines.join('\n');
 
-    // Build the WhatsApp URL and open the window NOW (inside user-gesture context)
-    // so browsers won't block it. We'll navigate it to the real URL after the API call.
-    const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
-    const waWindow = window.open('about:blank', '_blank');
+    // Build the target URL based on selected channel
+    let targetUrl;
+    if (sendChannel === 'instagram') {
+      targetUrl = `https://ig.me/m/${igUsername}`;
+    } else {
+      targetUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+    }
+
+    // Open the window NOW (inside user-gesture context) so browsers won't block it
+    const newWindow = window.open('about:blank', '_blank');
 
     try {
       // map cart items to order_details expected by the API
@@ -194,9 +238,10 @@ export const CartModal = (props) => {
       const apiPayload = {
         customer_name: name,
         customer_phone: phone,
-        customer_whatsapp: whatsappNumber,
+        customer_whatsapp: whatsappNumber || null,
         customer_address: address,
         message: message,
+        channel: sendChannel,
         order_details: order_details,
         total_amount: totalPrice,
         discount_code: discountApplied ? discountCode : null,
@@ -206,20 +251,22 @@ export const CartModal = (props) => {
 
       await sendWhatsappMessage(apiPayload);
     } catch (err) {
-      console.error('Failed to save whatsapp message:', err);
+      console.error('Failed to save order message:', err);
     }
 
-    // Navigate the already-opened window to the WhatsApp URL
-    if (waWindow) {
-      waWindow.location.href = url;
+    // Navigate the already-opened window to the target URL
+    if (newWindow) {
+      newWindow.location.href = targetUrl;
     } else {
-      // Fallback: if pop-up was still blocked, navigate current tab
-      window.location.href = url;
+      window.location.href = targetUrl;
     }
     
     // Show success toast
+    const toastMsg = sendChannel === 'instagram'
+      ? (t('cart.orderSentInstagram') || 'تم إرسال الطلب إلى انستجرام بنجاح!')
+      : (t('cart.orderSentWhatsapp') || 'تم إرسال الطلب إلى واتساب بنجاح!');
     present({
-      message: t('cart.orderSent') || 'تم إرسال الطلب بنجاح',
+      message: toastMsg,
       duration: 2000,
       position: 'top',
       color: 'success',
@@ -715,12 +762,90 @@ export const CartModal = (props) => {
             )}
           </div>
 
+          {/* ── Channel chooser (WhatsApp / Instagram) ── */}
+          {(hasWhatsapp || hasInstagram) && (hasWhatsapp && hasInstagram) && (
+            <div style={{ marginBottom: '0.85rem' }}>
+              <p style={{
+                fontSize: '0.72rem',
+                color: '#7A7A7A',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                margin: '0 0 8px',
+              }}>
+                {t('cart.sendVia')}
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {/* WhatsApp button */}
+                <button
+                  type="button"
+                  onClick={() => setSendChannel('whatsapp')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '10px 12px',
+                    border: sendChannel === 'whatsapp' ? '2px solid #25D366' : '1px solid #2A2A2A',
+                    borderRadius: '6px',
+                    background: sendChannel === 'whatsapp' ? 'rgba(37, 211, 102, 0.1)' : '#0C0C0C',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill={sendChannel === 'whatsapp' ? '#25D366' : '#7A7A7A'}>
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  <span style={{
+                    color: sendChannel === 'whatsapp' ? '#25D366' : '#7A7A7A',
+                    fontSize: '0.8rem',
+                    fontWeight: sendChannel === 'whatsapp' ? 600 : 400,
+                    letterSpacing: '0.05em',
+                  }}>
+                    {t('cart.whatsapp')}
+                  </span>
+                </button>
+
+                {/* Instagram button */}
+                <button
+                  type="button"
+                  onClick={() => setSendChannel('instagram')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '10px 12px',
+                    border: sendChannel === 'instagram' ? '2px solid #E1306C' : '1px solid #2A2A2A',
+                    borderRadius: '6px',
+                    background: sendChannel === 'instagram' ? 'rgba(225, 48, 108, 0.1)' : '#0C0C0C',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill={sendChannel === 'instagram' ? '#E1306C' : '#7A7A7A'}>
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                  </svg>
+                  <span style={{
+                    color: sendChannel === 'instagram' ? '#E1306C' : '#7A7A7A',
+                    fontSize: '0.8rem',
+                    fontWeight: sendChannel === 'instagram' ? 600 : 400,
+                    letterSpacing: '0.05em',
+                  }}>
+                    {t('cart.instagram')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <IonButton
             type="button"
             expand="block"
             onClick={handleCheckout}
             style={{
-              "--background": "#C9A96E",
+              "--background": sendChannel === 'instagram' ? "#E1306C" : "#C9A96E",
               "--color": "#0C0C0C",
               "--border-radius": "2px",
               "--box-shadow": "none",

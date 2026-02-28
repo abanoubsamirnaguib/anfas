@@ -35,7 +35,10 @@ class ProductController extends Controller
             ]);
 
             if ($search) {
-                $query->where('name', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhereRaw('JSON_SEARCH(tags, "one", ?) IS NOT NULL', ["%{$search}%"]);
+                });
             }
 
             if ($tag) {

@@ -12,8 +12,10 @@ class WhatsappMessage extends Model
     protected $fillable = [
         'customer_name',
         'customer_phone',
+        'customer_whatsapp',
         'customer_address',
         'message',
+        'channel',
         'order_details',
         'total_amount',
         'discount_code',

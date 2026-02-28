@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\JsonUnicode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -23,7 +24,7 @@ class Category extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'tags'      => 'array',
+        'tags'      => JsonUnicode::class,
     ];
 
     protected static function boot()

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\JsonUnicode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -32,9 +33,9 @@ class Product extends Model
         'base_price' => 'decimal:2',
         'discount_percentage' => 'decimal:2',
         'rating' => 'decimal:2',
-        'fragrance_notes' => 'array',
-        'shipping_info' => 'array',
-        'tags' => 'array',
+        'fragrance_notes' => JsonUnicode::class,
+        'shipping_info' => JsonUnicode::class,
+        'tags' => JsonUnicode::class,
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'is_suggested' => 'boolean',
