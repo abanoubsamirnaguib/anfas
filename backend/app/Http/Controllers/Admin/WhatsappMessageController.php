@@ -17,10 +17,6 @@ class WhatsappMessageController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('channel')) {
-            $query->where('channel', $request->channel);
-        }
-
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('customer_name', 'like', '%' . $request->search . '%')
@@ -33,7 +29,7 @@ class WhatsappMessageController extends Controller
 
         return Inertia::render('Admin/WhatsappMessages/Index', [
             'messages' => $messages,
-            'filters' => $request->only(['status', 'channel', 'search']),
+            'filters' => $request->only(['status', 'search']),
         ]);
     }
 

@@ -8,13 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Add channel column to whatsapp_messages table
-        if (!Schema::hasColumn('whatsapp_messages', 'channel')) {
-            Schema::table('whatsapp_messages', function (Blueprint $table) {
-                $table->string('channel', 20)->default('whatsapp')->after('message');
-            });
-        }
-
         // Add customer_whatsapp column if missing
         if (!Schema::hasColumn('whatsapp_messages', 'customer_whatsapp')) {
             Schema::table('whatsapp_messages', function (Blueprint $table) {
@@ -25,12 +18,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::hasColumn('whatsapp_messages', 'channel')) {
-            Schema::table('whatsapp_messages', function (Blueprint $table) {
-                $table->dropColumn('channel');
-            });
-        }
-
         if (Schema::hasColumn('whatsapp_messages', 'customer_whatsapp')) {
             Schema::table('whatsapp_messages', function (Blueprint $table) {
                 $table->dropColumn('customer_whatsapp');

@@ -16,7 +16,7 @@ class WhatsappMessageController extends Controller
             'customer_whatsapp' => 'nullable|string|max:30',
             'customer_address' => 'required|string',
             'message' => 'required|string',
-            'channel' => 'nullable|string|in:whatsapp,instagram',
+            'channel' => 'nullable|string|in:whatsapp',
             'order_details' => 'required|array',
             // allow product/attribute ids to be nullable for public API submissions
             'order_details.*.product_id' => 'nullable|exists:products,id',

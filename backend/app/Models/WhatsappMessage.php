@@ -15,7 +15,6 @@ class WhatsappMessage extends Model
         'customer_whatsapp',
         'customer_address',
         'message',
-        'channel',
         'order_details',
         'total_amount',
         'discount_code',
