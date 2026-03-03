@@ -17,7 +17,7 @@ class VideoUploadController extends Controller
     {
         $request->validate([
             'video'  => 'required|file|mimetypes:video/mp4,video/webm,video/quicktime,video/x-msvideo,video/mpeg|max:25600',
-            'folder' => 'nullable|string|in:videos,banner-videos',
+            'folder' => 'nullable|string|in:videos,banner-videos,product-videos',
         ]);
 
         try {

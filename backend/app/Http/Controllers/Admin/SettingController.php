@@ -27,6 +27,7 @@ class SettingController extends Controller
             'settings.whatsapp_phone'          => ['nullable', 'string', 'max:30'],
             'settings.shop_name'               => ['nullable', 'string', 'max:200'],
             'settings.about_us_description'    => ['nullable', 'string', 'max:20000'],
+            'settings.about_us_description_ar' => ['nullable', 'string', 'max:20000'],
             'settings.contact_phone'           => ['nullable', 'string', 'max:30'],
             'settings.contact_email'           => ['nullable', 'email', 'max:200'],
             'settings.social_facebook'         => ['nullable', 'string', 'max:500'],

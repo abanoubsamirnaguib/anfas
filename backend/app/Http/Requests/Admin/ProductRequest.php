@@ -30,6 +30,7 @@ class ProductRequest extends FormRequest
             'description'                => ['nullable', 'string', 'max:5000'],
             'description_ar'             => ['nullable', 'string', 'max:5000'],
             'image'                      => ['nullable', 'string', 'max:500'],
+            'video_url'                  => ['nullable', 'string', 'max:500'],
             'base_price'                 => ['required', 'numeric', 'min:0', 'max:99999.99'],
             'discount_percentage'        => ['nullable', 'numeric', 'min:0', 'max:100'],
             'rating'                     => ['nullable', 'numeric', 'min:0', 'max:5'],

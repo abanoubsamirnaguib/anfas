@@ -223,6 +223,7 @@ class ProductController extends Controller
             'slug'                 => $product->slug,
             'title'                => $product->name,
             'image'                => $this->resolveImageUrl($product->image),
+            'video_url'            => $this->resolveImageUrl($product->video_url),
             'images'               => ($product->relationLoaded('images') ? $product->images : collect())
                 ->map(fn ($img) => [
                     'id'         => $img->id,

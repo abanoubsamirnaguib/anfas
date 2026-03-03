@@ -41,7 +41,7 @@ const SkeletonCard = () => (
 );
 
 const Categories = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [apiCategories, setApiCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -200,6 +200,16 @@ const Categories = () => {
           {/* Slides */}
           {!bannerLoading && bannerSlides.length > 0 && bannerSlides.map((slide, idx) => {
             const isExternal = slide.link_url && (slide.link_url.startsWith('http://') || slide.link_url.startsWith('https://'));
+
+            // Localized banner title/subtitle (fallback to default if missing)
+            const slideTitle =
+              language === 'ar'
+                ? (slide.title_ar || slide.title)
+                : slide.title;
+            const slideSubtitle =
+              language === 'ar'
+                ? (slide.subtitle_ar || slide.subtitle)
+                : slide.subtitle;
             const inner = (
               <>
                 {slide.video_url ? (
@@ -220,7 +230,7 @@ const Categories = () => {
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 )}
-                {(slide.title || slide.subtitle) && (
+                {(slideTitle || slideSubtitle) && (
                   <div
                     style={{
                       position: 'absolute',
@@ -232,14 +242,14 @@ const Categories = () => {
                       padding: '1.25rem 1.5rem',
                     }}
                   >
-                    {slide.subtitle && (
+                    {slideSubtitle && (
                       <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A96E', margin: 0, marginBottom: 4 }}>
-                        {slide.subtitle}
+                        {slideSubtitle}
                       </p>
                     )}
-                    {slide.title && (
+                    {slideTitle && (
                       <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 'clamp(1.4rem, 5vw, 2.2rem)', color: '#F5F0E8', margin: 0, letterSpacing: '0.08em' }}>
-                        {slide.title}
+                        {slideTitle}
                       </h1>
                     )}
                   </div>
@@ -513,11 +523,16 @@ const Categories = () => {
               }}
             />
 
-            {/* Description — rendered as HTML exactly as admin styled it */}
-            {siteSettings.about_us_description && (
+            {/* Description — rendered as HTML exactly as admin styled it, with optional Arabic variant */}
+            {(siteSettings.about_us_description || siteSettings.about_us_description_ar) && (
               <div
                 className="about-us-content"
-                dangerouslySetInnerHTML={{ __html: siteSettings.about_us_description }}
+                dangerouslySetInnerHTML={{
+                  __html:
+                    language === 'ar'
+                      ? (siteSettings.about_us_description_ar || siteSettings.about_us_description || '')
+                      : (siteSettings.about_us_description || siteSettings.about_us_description_ar || ''),
+                }}
                 style={{
                   fontFamily: "'Jost', sans-serif",
                   fontSize: '0.875rem',

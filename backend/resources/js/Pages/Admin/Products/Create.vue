@@ -56,6 +56,16 @@
                             <div v-if="form.errors.image" class="text-red-600 text-sm mt-1">{{ form.errors.image }}</div>
                         </div>
 
+                        <!-- Product Video (optional) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-1">
+                                Product Video
+                                <span class="text-slate-500 font-normal">(optional — shown first in the gallery when set)</span>
+                            </label>
+                            <VideoUpload v-model="form.video_url" folder="product-videos" />
+                            <div v-if="form.errors.video_url" class="text-red-600 text-sm mt-1">{{ form.errors.video_url }}</div>
+                        </div>
+
                         <!-- Gallery Images -->
                         <div>
                             <label class="block text-sm font-medium text-slate-300 mb-1">Gallery Images</label>
@@ -199,6 +209,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ImageUpload from '@/Components/Admin/ImageUpload.vue';
 import GalleryUpload from '@/Components/Admin/GalleryUpload.vue';
+import VideoUpload from '@/Components/Admin/VideoUpload.vue';
 import { ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 
@@ -213,6 +224,7 @@ const form = useForm({
     description: '',
     description_ar: '',
     image: '',
+    video_url: '',
     gallery_images: [],
     base_price: 0,
     discount_percentage: 0,

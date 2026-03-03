@@ -30,7 +30,9 @@ class BannerSlideController extends Controller
             'video_url'  => 'nullable|string|url',
             'link_url'   => 'nullable|string',
             'title'      => 'nullable|string|max:255',
+            'title_ar'   => 'nullable|string|max:255',
             'subtitle'   => 'nullable|string|max:255',
+            'subtitle_ar'=> 'nullable|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active'  => 'boolean',
         ]);
@@ -55,7 +57,9 @@ class BannerSlideController extends Controller
             'video_url'  => 'nullable|string|url',
             'link_url'   => 'nullable|string',
             'title'      => 'nullable|string|max:255',
+            'title_ar'   => 'nullable|string|max:255',
             'subtitle'   => 'nullable|string|max:255',
+            'subtitle_ar'=> 'nullable|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active'  => 'boolean',
         ]);

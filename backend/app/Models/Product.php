@@ -17,6 +17,7 @@ class Product extends Model
         'description',
         'description_ar',
         'image',
+        'video_url',
         'base_price', // Reference price only - actual prices come from product_attributes (10ml, 50ml, etc.)
         'discount_percentage',
         'rating',

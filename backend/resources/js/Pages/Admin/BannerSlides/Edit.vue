@@ -40,17 +40,30 @@
                             <div v-if="form.errors.link_url" class="text-red-500 text-sm mt-1">{{ form.errors.link_url }}</div>
                         </div>
 
-                        <!-- Title -->
-                        <div>
-                            <label for="title" class="block text-sm font-medium text-slate-300">Title (optional)</label>
-                            <input v-model="form.title" type="text" id="title" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                            <div v-if="form.errors.title" class="text-red-500 text-sm mt-1">{{ form.errors.title }}</div>
+                        <!-- Titles -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-slate-300">Title (EN, optional)</label>
+                                <input v-model="form.title" type="text" id="title" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                                <div v-if="form.errors.title" class="text-red-500 text-sm mt-1">{{ form.errors.title }}</div>
+                            </div>
+                            <div>
+                                <label for="title_ar" class="block text-sm font-medium text-slate-300">Title (AR, optional)</label>
+                                <input v-model="form.title_ar" type="text" id="title_ar" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                                <div v-if="form.errors.title_ar" class="text-red-500 text-sm mt-1">{{ form.errors.title_ar }}</div>
+                            </div>
                         </div>
 
-                        <!-- Subtitle -->
-                        <div>
-                            <label for="subtitle" class="block text-sm font-medium text-slate-300">Subtitle (optional)</label>
-                            <input v-model="form.subtitle" type="text" id="subtitle" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        <!-- Subtitles -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="subtitle" class="block text-sm font-medium text-slate-300">Subtitle (EN, optional)</label>
+                                <input v-model="form.subtitle" type="text" id="subtitle" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            </div>
+                            <div>
+                                <label for="subtitle_ar" class="block text-sm font-medium text-slate-300">Subtitle (AR, optional)</label>
+                                <input v-model="form.subtitle_ar" type="text" id="subtitle_ar" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            </div>
                         </div>
 
                         <!-- Sort Order -->
@@ -94,7 +107,9 @@ const form = useForm({
     video_url:  props.slide.video_url  ?? '',
     link_url:   props.slide.link_url  ?? '',
     title:      props.slide.title     ?? '',
+    title_ar:   props.slide.title_ar  ?? '',
     subtitle:   props.slide.subtitle  ?? '',
+    subtitle_ar:props.slide.subtitle_ar ?? '',
     sort_order: props.slide.sort_order,
     is_active:  props.slide.is_active,
 });

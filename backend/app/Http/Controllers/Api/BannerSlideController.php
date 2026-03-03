@@ -12,7 +12,17 @@ class BannerSlideController extends Controller
      */
     public function index()
     {
-        $slides = BannerSlide::active()->get(['id', 'image_url', 'video_url', 'link_url', 'title', 'subtitle', 'sort_order']);
+        $slides = BannerSlide::active()->get([
+            'id',
+            'image_url',
+            'video_url',
+            'link_url',
+            'title',
+            'title_ar',
+            'subtitle',
+            'subtitle_ar',
+            'sort_order',
+        ]);
 
         return response()->json($slides);
     }

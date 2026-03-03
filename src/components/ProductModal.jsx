@@ -44,19 +44,40 @@ export const ProductModal = (props) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const galleryRef = useRef(null);
 
-  // Build gallery: gallery images array + cover image merged, deduplicated
-  const galleryImages = useMemo(() => {
+  // Build gallery: optional video first, then gallery images + cover image merged, deduplicated
+  const galleryItems = useMemo(() => {
     const extra = Array.isArray(product?.images) ? product.images : [];
+
+    // Normalize images
+    let imageItems;
     if (extra.length > 0) {
       const coverUrl = product?.image || null;
       const hasMain = extra.some((img) => img.url === coverUrl);
       if (coverUrl && !hasMain) {
-        return [{ id: 'cover', url: coverUrl, alt_text: product.title }, ...extra];
+        imageItems = [{ id: 'cover', url: coverUrl, alt_text: product.title, type: 'image' }, ...extra.map((img) => ({
+          ...img,
+          type: 'image',
+        }))];
+      } else {
+        imageItems = extra.map((img) => ({
+          ...img,
+          type: 'image',
+        }));
       }
-      return extra;
+    } else {
+      imageItems = product?.image ? [{ id: 'cover', url: product.image, alt_text: product.title, type: 'image' }] : [];
     }
-    return product?.image ? [{ id: 'cover', url: product.image, alt_text: product.title }] : [];
-  }, [product?.images, product?.image]);
+
+    // Optional video as first item
+    if (product?.video_url) {
+      return [
+        { id: 'video', url: product.video_url, alt_text: product.title, type: 'video' },
+        ...imageItems,
+      ];
+    }
+
+    return imageItems;
+  }, [product?.images, product?.image, product?.video_url]);
 
   const handleGalleryScroll = useCallback(() => {
     if (!galleryRef.current) return;
@@ -189,22 +210,41 @@ export const ProductModal = (props) => {
               direction: 'ltr',
             }}
           >
-            {galleryImages.length > 0 ? galleryImages.map((img, idx) => (
-              <img
-                key={img.id ?? idx}
-                src={img.url}
-                alt={img.alt_text || product.title}
-                referrerPolicy="no-referrer"
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
-                style={{
-                  flexShrink: 0,
-                  width: '100%',
-                  height: '320px',
-                  objectFit: 'cover',
-                  display: 'block',
-                  scrollSnapAlign: 'start',
-                }}
-              />
+            {galleryItems.length > 0 ? galleryItems.map((item, idx) => (
+              item.type === 'video' ? (
+                <video
+                  key={item.id ?? `video-${idx}`}
+                  src={item.url}
+                  controls
+                  muted
+                  playsInline
+                  style={{
+                    flexShrink: 0,
+                    width: '100%',
+                    height: '320px',
+                    objectFit: 'cover',
+                    display: 'block',
+                    scrollSnapAlign: 'start',
+                    backgroundColor: '#000',
+                  }}
+                />
+              ) : (
+                <img
+                  key={item.id ?? idx}
+                  src={item.url}
+                  alt={item.alt_text || product.title}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                  style={{
+                    flexShrink: 0,
+                    width: '100%',
+                    height: '320px',
+                    objectFit: 'cover',
+                    display: 'block',
+                    scrollSnapAlign: 'start',
+                  }}
+                />
+              )
             )) : (
               <img
                 src={FALLBACK_IMG}
@@ -315,7 +355,7 @@ export const ProductModal = (props) => {
         </div>
 
         {/* ── Thumbnail Strip ── */}
-        {galleryImages.length > 1 && (
+        {galleryItems.length > 1 && (
           <div
             style={{
               display: 'flex',
@@ -330,11 +370,11 @@ export const ProductModal = (props) => {
             }}
             className="product-gallery-strip"
           >
-            {galleryImages.map((img, i) => (
+            {galleryItems.map((item, i) => (
               <button
-                key={img.id ?? i}
+                key={item.id ?? i}
                 onClick={() => scrollToSlide(i)}
-                aria-label={`View image ${i + 1}`}
+                aria-label={`View media ${i + 1}`}
                 style={{
                   flexShrink: 0,
                   width: '52px',
@@ -350,13 +390,22 @@ export const ProductModal = (props) => {
                   transition: 'border-color 0.2s, opacity 0.2s',
                 }}
               >
-                <img
-                  src={img.url}
-                  alt={img.alt_text || `Image ${i + 1}`}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-                />
+                {item.type === 'video' ? (
+                  <video
+                    src={item.url}
+                    muted
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none', backgroundColor: '#000' }}
+                  />
+                ) : (
+                  <img
+                    src={item.url}
+                    alt={item.alt_text || `Image ${i + 1}`}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                  />
+                )}
               </button>
             ))}
           </div>

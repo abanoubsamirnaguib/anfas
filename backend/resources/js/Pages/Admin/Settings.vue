@@ -62,53 +62,107 @@
                             <h3 class="text-slate-200 font-semibold text-sm uppercase tracking-widest">About Us</h3>
                             <p class="text-slate-400 text-xs mt-1">This section appears on the main page below the product categories.</p>
                         </div>
-                        <div class="p-6">
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                        <div class="p-6 space-y-6">
+                            <!-- English description -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Description (English)</label>
 
-                            <!-- Rich-text toolbar -->
-                            <div class="flex flex-wrap gap-1 mb-0 p-2 bg-slate-800 border border-slate-700 rounded-t-md">
-                                <button type="button" @click="exec('bold')"
-                                    class="editor-btn font-bold" title="Bold">B</button>
-                                <button type="button" @click="exec('italic')"
-                                    class="editor-btn italic" title="Italic">I</button>
-                                <button type="button" @click="exec('underline')"
-                                    class="editor-btn underline" title="Underline">U</button>
-                                <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
-                                <button type="button" @click="execBlock('h2')"
-                                    class="editor-btn" title="Heading 2">H2</button>
-                                <button type="button" @click="execBlock('h3')"
-                                    class="editor-btn" title="Heading 3">H3</button>
-                                <button type="button" @click="execBlock('p')"
-                                    class="editor-btn" title="Paragraph">¶</button>
-                                <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
-                                <button type="button" @click="exec('insertUnorderedList')"
-                                    class="editor-btn" title="Bullet list">• List</button>
-                                <button type="button" @click="exec('insertOrderedList')"
-                                    class="editor-btn" title="Numbered list">1. List</button>
-                                <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
-                                <button type="button" @click="exec('justifyLeft')"
-                                    class="editor-btn" title="Align left">⬅</button>
-                                <button type="button" @click="exec('justifyCenter')"
-                                    class="editor-btn" title="Center">⬌</button>
-                                <button type="button" @click="exec('justifyRight')"
-                                    class="editor-btn" title="Align right">➡</button>
-                                <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
-                                <button type="button" @click="insertLink"
-                                    class="editor-btn" title="Insert link">🔗 Link</button>
-                                <button type="button" @click="exec('removeFormat')"
-                                    class="editor-btn text-red-400" title="Clear formatting">✕ Clear</button>
+                                <!-- Rich-text toolbar (EN) -->
+                                <div class="flex flex-wrap gap-1 mb-0 p-2 bg-slate-800 border border-slate-700 rounded-t-md">
+                                    <button type="button" @click="exec('bold')"
+                                        class="editor-btn font-bold" title="Bold">B</button>
+                                    <button type="button" @click="exec('italic')"
+                                        class="editor-btn italic" title="Italic">I</button>
+                                    <button type="button" @click="exec('underline')"
+                                        class="editor-btn underline" title="Underline">U</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="execBlock('h2')"
+                                        class="editor-btn" title="Heading 2">H2</button>
+                                    <button type="button" @click="execBlock('h3')"
+                                        class="editor-btn" title="Heading 3">H3</button>
+                                    <button type="button" @click="execBlock('p')"
+                                        class="editor-btn" title="Paragraph">¶</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="exec('insertUnorderedList')"
+                                        class="editor-btn" title="Bullet list">• List</button>
+                                    <button type="button" @click="exec('insertOrderedList')"
+                                        class="editor-btn" title="Numbered list">1. List</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="exec('justifyLeft')"
+                                        class="editor-btn" title="Align left">⬅</button>
+                                    <button type="button" @click="exec('justifyCenter')"
+                                        class="editor-btn" title="Center">⬌</button>
+                                    <button type="button" @click="exec('justifyRight')"
+                                        class="editor-btn" title="Align right">➡</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="insertLink"
+                                        class="editor-btn" title="Insert link">🔗 Link</button>
+                                    <button type="button" @click="exec('removeFormat')"
+                                        class="editor-btn text-red-400" title="Clear formatting">✕ Clear</button>
+                                </div>
+
+                                <!-- Editable content area (EN) -->
+                                <div
+                                    ref="editorRef"
+                                    contenteditable="true"
+                                    @input="onEditorInput"
+                                    @paste.prevent="onEditorPaste"
+                                    class="editor-content min-h-[180px] p-4 bg-slate-950 border border-t-0 border-slate-700 rounded-b-md text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    style="word-break: break-word;"
+                                ></div>
+                                <p class="text-slate-500 text-xs mt-1">Formatting is preserved exactly as you type — bold, headings, lists, etc. are all shown to users on the website.</p>
                             </div>
 
-                            <!-- Editable content area -->
-                            <div
-                                ref="editorRef"
-                                contenteditable="true"
-                                @input="onEditorInput"
-                                @paste.prevent="onEditorPaste"
-                                class="editor-content min-h-[180px] p-4 bg-slate-950 border border-t-0 border-slate-700 rounded-b-md text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                style="word-break: break-word;"
-                            ></div>
-                            <p class="text-slate-500 text-xs mt-1">Formatting is preserved exactly as you type — bold, headings, lists, etc. are all shown to users on the website.</p>
+                            <!-- Arabic description -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Description (Arabic)</label>
+
+                                <!-- Rich-text toolbar (AR) -->
+                                <div class="flex flex-wrap gap-1 mb-0 p-2 bg-slate-800 border border-slate-700 rounded-t-md">
+                                    <button type="button" @click="execAr('bold')"
+                                        class="editor-btn font-bold" title="Bold">B</button>
+                                    <button type="button" @click="execAr('italic')"
+                                        class="editor-btn italic" title="Italic">I</button>
+                                    <button type="button" @click="execAr('underline')"
+                                        class="editor-btn underline" title="Underline">U</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="execBlockAr('h2')"
+                                        class="editor-btn" title="Heading 2">H2</button>
+                                    <button type="button" @click="execBlockAr('h3')"
+                                        class="editor-btn" title="Heading 3">H3</button>
+                                    <button type="button" @click="execBlockAr('p')"
+                                        class="editor-btn" title="Paragraph">¶</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="execAr('insertUnorderedList')"
+                                        class="editor-btn" title="Bullet list">• List</button>
+                                    <button type="button" @click="execAr('insertOrderedList')"
+                                        class="editor-btn" title="Numbered list">1. List</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="execAr('justifyRight')"
+                                        class="editor-btn" title="Align right">➡</button>
+                                    <button type="button" @click="execAr('justifyCenter')"
+                                        class="editor-btn" title="Center">⬌</button>
+                                    <button type="button" @click="execAr('justifyLeft')"
+                                        class="editor-btn" title="Align left">⬅</button>
+                                    <div class="w-px bg-slate-600 mx-1 self-stretch"></div>
+                                    <button type="button" @click="insertLinkAr"
+                                        class="editor-btn" title="Insert link">🔗 Link</button>
+                                    <button type="button" @click="execAr('removeFormat')"
+                                        class="editor-btn text-red-400" title="Clear formatting">✕ Clear</button>
+                                </div>
+
+                                <!-- Editable content area (AR) -->
+                                <div
+                                    ref="editorRefAr"
+                                    contenteditable="true"
+                                    dir="rtl"
+                                    @input="onEditorInputAr"
+                                    @paste.prevent="onEditorPasteAr"
+                                    class="editor-content min-h-[180px] p-4 bg-slate-950 border border-t-0 border-slate-700 rounded-b-md text-slate-100 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-right"
+                                    style="word-break: break-word;"
+                                ></div>
+                                <p class="text-slate-500 text-xs mt-1">If filled, this version will be shown when the site is in Arabic. Formatting is preserved exactly as you type.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -218,12 +272,14 @@ const props = defineProps({
 });
 
 const editorRef = ref(null);
+const editorRefAr = ref(null);
 
 const form = useForm({
     settings: {
         whatsapp_phone:       props.settings?.whatsapp_phone?.value       ?? '',
         shop_name:            props.settings?.shop_name?.value            ?? '',
         about_us_description: props.settings?.about_us_description?.value ?? '',
+        about_us_description_ar: props.settings?.about_us_description_ar?.value ?? '',
         contact_phone:        props.settings?.contact_phone?.value        ?? '',
         contact_email:        props.settings?.contact_email?.value        ?? '',
         social_facebook:      props.settings?.social_facebook?.value      ?? '',
@@ -233,10 +289,13 @@ const form = useForm({
     },
 });
 
-// Bootstrap the contenteditable area with saved HTML on mount
+// Bootstrap the contenteditable areas with saved HTML on mount
 onMounted(() => {
     if (editorRef.value) {
         editorRef.value.innerHTML = form.settings.about_us_description || '';
+    }
+    if (editorRefAr.value) {
+        editorRefAr.value.innerHTML = form.settings.about_us_description_ar || '';
     }
 });
 
@@ -244,11 +303,21 @@ const onEditorInput = () => {
     form.settings.about_us_description = editorRef.value?.innerHTML ?? '';
 };
 
+const onEditorInputAr = () => {
+    form.settings.about_us_description_ar = editorRefAr.value?.innerHTML ?? '';
+};
+
 // Paste as plain text only – prevents importing foreign CSS/styles
 const onEditorPaste = (e) => {
     const text = (e.clipboardData || window.clipboardData).getData('text/plain');
     document.execCommand('insertText', false, text);
     onEditorInput();
+};
+
+const onEditorPasteAr = (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+    onEditorInputAr();
 };
 
 const exec = (command, value = null) => {
@@ -263,9 +332,26 @@ const execBlock = (tag) => {
     onEditorInput();
 };
 
+const execAr = (command, value = null) => {
+    editorRefAr.value?.focus();
+    document.execCommand(command, false, value);
+    onEditorInputAr();
+};
+
+const execBlockAr = (tag) => {
+    editorRefAr.value?.focus();
+    document.execCommand('formatBlock', false, tag);
+    onEditorInputAr();
+};
+
 const insertLink = () => {
     const url = prompt('Enter URL (include https://):', 'https://');
     if (url) exec('createLink', url);
+};
+
+const insertLinkAr = () => {
+    const url = prompt('Enter URL (include https://):', 'https://');
+    if (url) execAr('createLink', url);
 };
 
 const submit = () => {

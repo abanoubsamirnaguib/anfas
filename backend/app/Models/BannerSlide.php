@@ -14,7 +14,9 @@ class BannerSlide extends Model
         'video_url',
         'link_url',
         'title',
+        'title_ar',
         'subtitle',
+        'subtitle_ar',
         'sort_order',
         'is_active',
     ];
