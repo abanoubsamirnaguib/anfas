@@ -186,6 +186,7 @@ export const ProductModal = (props) => {
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               height: '320px',
+              direction: 'ltr',
             }}
           >
             {galleryImages.length > 0 ? galleryImages.map((img, idx) => (
@@ -325,6 +326,7 @@ export const ProductModal = (props) => {
               background: '#0C0C0C',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              direction: 'ltr',
             }}
             className="product-gallery-strip"
           >
