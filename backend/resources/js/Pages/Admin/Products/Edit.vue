@@ -42,9 +42,15 @@
                             <input v-model="form.slug" type="text" id="slug" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
 
-                        <div>
-                            <label for="description" class="block text-sm font-medium text-slate-300">Description</label>
-                            <textarea v-model="form.description" id="description" rows="5" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-slate-300">Description (English)</label>
+                                <textarea v-model="form.description" id="description" rows="5" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="description_ar" class="block text-sm font-medium text-slate-300">Description (Arabic)</label>
+                                <textarea v-model="form.description_ar" id="description_ar" dir="rtl" rows="5" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                            </div>
                         </div>
 
                         <div>
@@ -69,7 +75,7 @@
                             </div>
                             <div>
                                 <label for="discount_percentage" class="block text-sm font-medium text-slate-300">Discount (%)</label>
-                                <input v-model.number="form.discount_percentage" type="number" id="discount_percentage" step="1.00" min="0" max="100" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model.number="form.discount_percentage" type="number" id="discount_percentage" step="0.0001" min="0" max="100" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
                         </div>
 
@@ -91,9 +97,11 @@
                                 <button type="button" @click="addFragranceRow" class="text-xs text-indigo-400 hover:text-indigo-300">+ Add Note</button>
                             </div>
                             <div v-if="fragranceRows.length === 0" class="text-sm text-slate-500 italic">No fragrance notes added.</div>
-                            <div v-for="(row, i) in fragranceRows" :key="i" class="flex gap-2 mb-2">
-                                <input v-model="row.key" type="text" placeholder="Type (e.g. top, heart, base)" class="w-1/3 rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <input v-model="row.value" type="text" placeholder="Notes (e.g. Rose, Oud)" class="flex-1 rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <div v-for="(row, i) in fragranceRows" :key="i" class="grid grid-cols-1 md:grid-cols-[1.2fr,1.2fr,1.5fr,1.5fr,auto] gap-2 mb-2">
+                                <input v-model="row.key" type="text" placeholder="Label EN (e.g. Top Notes)" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.key_ar" type="text" placeholder="Label AR" dir="rtl" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.value_en" type="text" placeholder="Notes EN (e.g. Rose, Oud)" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.value_ar" type="text" placeholder="Notes AR" dir="rtl" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <button type="button" @click="removeFragranceRow(i)" class="text-red-400 hover:text-red-300 px-1 text-lg leading-none">&times;</button>
                             </div>
                             <div v-if="form.errors.fragrance_notes" class="text-red-600 text-sm mt-1">{{ form.errors.fragrance_notes }}</div>
@@ -106,9 +114,11 @@
                                 <button type="button" @click="addShippingRow" class="text-xs text-indigo-400 hover:text-indigo-300">+ Add Method</button>
                             </div>
                             <div v-if="shippingRows.length === 0" class="text-sm text-slate-500 italic">No shipping methods added.</div>
-                            <div v-for="(row, i) in shippingRows" :key="i" class="flex gap-2 mb-2">
-                                <input v-model="row.key" type="text" placeholder="Method (e.g. standard, express)" class="w-1/3 rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <input v-model="row.value" type="text" placeholder="Duration (e.g. 3-5 business days)" class="flex-1 rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <div v-for="(row, i) in shippingRows" :key="i" class="grid grid-cols-1 md:grid-cols-[1.2fr,1.2fr,1.5fr,1.5fr,auto] gap-2 mb-2">
+                                <input v-model="row.key" type="text" placeholder="Method EN (e.g. Standard)" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.key_ar" type="text" placeholder="Method AR" dir="rtl" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.value_en" type="text" placeholder="Duration EN (e.g. 3-5 business days)" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input v-model="row.value_ar" type="text" placeholder="Duration AR" dir="rtl" class="w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <button type="button" @click="removeShippingRow(i)" class="text-red-400 hover:text-red-300 px-1 text-lg leading-none">&times;</button>
                             </div>
                             <div v-if="form.errors.shipping_info" class="text-red-600 text-sm mt-1">{{ form.errors.shipping_info }}</div>
@@ -205,6 +215,7 @@ const form = useForm({
     name: props.product.name,
     slug: props.product.slug ?? '',
     description: props.product.description ?? '',
+    description_ar: props.product.description_ar ?? '',
     image: props.product.image ?? '',
     gallery_images: (props.product.images ?? []).map((img, i) => ({
         url:        img.url,
@@ -271,20 +282,55 @@ const toggleSuggestion = (s) => {
 // Initialise rows from existing product data
 const objectToRows = (obj) =>
     obj && typeof obj === 'object'
-        ? Object.entries(obj).map(([key, value]) => ({ key, value }))
+        ? Object.entries(obj).map(([storageKey, value]) => {
+            const isObj = value && typeof value === 'object' && !Array.isArray(value);
+            if (!isObj) {
+                return {
+                    key: storageKey,
+                    key_ar: '',
+                    value_en: value ?? '',
+                    value_ar: '',
+                };
+            }
+            // New shape: { key_en, key_ar, value: { en, ar } }
+            const hasNestedValue = value.value && typeof value.value === 'object';
+            const labelEn = value.key_en ?? storageKey;
+            const labelAr = value.key_ar ?? '';
+            const valEn = hasNestedValue ? (value.value.en ?? '') : (value.en ?? '');
+            const valAr = hasNestedValue ? (value.value.ar ?? '') : (value.ar ?? '');
+            return {
+                key: labelEn,
+                key_ar: labelAr,
+                value_en: valEn,
+                value_ar: valAr,
+            };
+        })
         : [];
 
 const fragranceRows = ref(objectToRows(props.product.fragrance_notes));
-const addFragranceRow = () => fragranceRows.value.push({ key: '', value: '' });
+const addFragranceRow = () => fragranceRows.value.push({ key: '', key_ar: '', value_en: '', value_ar: '' });
 const removeFragranceRow = (i) => fragranceRows.value.splice(i, 1);
 
 const shippingRows = ref(objectToRows(props.product.shipping_info));
-const addShippingRow = () => shippingRows.value.push({ key: '', value: '' });
+const addShippingRow = () => shippingRows.value.push({ key: '', key_ar: '', value_en: '', value_ar: '' });
 const removeShippingRow = (i) => shippingRows.value.splice(i, 1);
 
 const rowsToObject = (rows) => {
     const obj = {};
-    rows.forEach(({ key, value }) => { if (key.trim()) obj[key.trim()] = value; });
+    rows.forEach(({ key, key_ar, value_en, value_ar }) => {
+        const normalizedKey = (key ?? '').toString().trim();
+        const normalizedKeyAr = (key_ar ?? '').toString().trim();
+        if (!normalizedKey && !normalizedKeyAr) return;
+        const storageKey = normalizedKey || normalizedKeyAr;
+        obj[storageKey] = {
+            key_en: normalizedKey || null,
+            key_ar: normalizedKeyAr || null,
+            value: {
+                en: (value_en ?? '').toString().trim(),
+                ar: (value_ar ?? '').toString().trim(),
+            },
+        };
+    });
     return obj;
 };
 

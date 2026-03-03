@@ -33,7 +33,7 @@ const { closeOutline, trashOutline } = require("ionicons/icons");
 export const CartModal = (props) => {
   const cart = useStoreState(CartStore, getCart);
   const [totalPrice, setTotalPrice] = useState(0);
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
@@ -476,6 +476,10 @@ export const CartModal = (props) => {
             }}>
               {suggestedProducts.map((product) => {
                 const hasDiscount = product.discount && product.discount > 0;
+                const productDescription =
+                  language === 'ar'
+                    ? (product.description_ar || product.description)
+                    : product.description;
                 return (
                   <div
                     key={product.id}
@@ -561,9 +565,9 @@ export const CartModal = (props) => {
                       >
                         {product.title}
                       </p>
-                      {product.description && (
+                      {productDescription && (
                         <p style={{ fontSize: '0.6rem', color: '#7A7A7A', margin: '2px 0 0', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {product.description}
+                          {productDescription}
                         </p>
                       )}
                       <p style={{

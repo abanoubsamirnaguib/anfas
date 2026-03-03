@@ -35,7 +35,7 @@ class ProductAttribute extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
-        'discount_percentage' => 'decimal:2',
+        'discount_percentage' => 'decimal:3',
         'is_active' => 'boolean',
     ];
 

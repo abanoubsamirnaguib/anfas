@@ -35,7 +35,7 @@ const StarRating = ({ rating }) => {
 const Category = () => {
   const router = useIonRouter();
   const { category } = useParams();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const productsRef = useRef();
 
   // Static fallback info (used until API data arrives)
@@ -330,6 +330,10 @@ const Category = () => {
             )}
 
             {filteredProducts.map((product, index) => {
+              const productDescription =
+                language === 'ar'
+                  ? (product.description_ar || product.description)
+                  : product.description;
               if (!product.image) return null;
               return (
                 <div key={product.id || index} onClick={() => handleProductModal(product)} style={{ cursor: 'pointer' }}>
@@ -352,9 +356,9 @@ const Category = () => {
                       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.9rem', color: '#F5F0E8', margin: 0, marginBottom: '3px', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {product.title}
                       </p>
-                      {product.description && (
+                      {productDescription && (
                         <p style={{ fontSize: '0.7rem', color: '#7A7A7A', margin: '0 0 4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {product.description}
+                          {productDescription}
                         </p>
                       )}
                       {product.reviews > 0 && <StarRating rating={product.reviews} />}

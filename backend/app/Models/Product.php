@@ -15,6 +15,7 @@ class Product extends Model
         'name',
         'slug',
         'description',
+        'description_ar',
         'image',
         'base_price', // Reference price only - actual prices come from product_attributes (10ml, 50ml, etc.)
         'discount_percentage',
@@ -31,7 +32,7 @@ class Product extends Model
 
     protected $casts = [
         'base_price' => 'decimal:2',
-        'discount_percentage' => 'decimal:2',
+        'discount_percentage' => 'decimal:3',
         'rating' => 'decimal:2',
         'fragrance_notes' => JsonUnicode::class,
         'shipping_info' => JsonUnicode::class,

@@ -7,12 +7,37 @@ import { getSpecsByLanguage, useI18n } from '../i18n';
  * Build specs from a product's real backend data, falling back to static productSpecs
  * when individual fields are missing.
  *
- * product.fragrance_notes  → object { top, heart, base } OR array [{ label, value }]
+ * product.fragrance_notes  →
+ *   - object { top, heart, base }
+ *   - object { top: { en, ar } }
+ *   - object { top: { key_en, key_ar, value: { en, ar } } }
+ *   - array  [{ label, value }]
+ *
+ * product.shipping_info    →
+ *   - object or array of {label, value}
+ *   - object { label: {en, ar} }
+ *   - object { label_en, label_ar, value: {en, ar} }
+ *
  * product.attributes       → array [{name, value, price, formatted_price}]
- * product.shipping_info    → object or array of {label, value}
  */
-function buildProductSpecs(product, staticSpecs) {
+function buildProductSpecs(product, staticSpecs, language) {
   const result = {};
+
+  const resolveLocalizedValue = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      // Nested shape: { value: { en, ar } }
+      if (val.value && typeof val.value === 'object') {
+        return resolveLocalizedValue(val.value);
+      }
+      if (language === 'ar') {
+        return val.ar || val.en || '';
+      }
+      return val.en || val.ar || '';
+    }
+    return String(val);
+  };
 
   // ── Fragrance Notes ──────────────────────────────────────────────────────────
   const fn = product?.fragrance_notes;
@@ -24,7 +49,19 @@ function buildProductSpecs(product, staticSpecs) {
       // Object format: use ALL keys from the backend dynamically
       const opts = Object.entries(fn)
         .filter(([, v]) => v)
-        .map(([k, v]) => ({ label: k, value: v }));
+        .map(([storageKey, v]) => {
+          if (v && typeof v === 'object') {
+            // New shape: { key_en, key_ar, value: { en, ar } }
+            const keyEn = v.key_en || storageKey;
+            const keyAr = v.key_ar || '';
+            const label = language === 'ar'
+              ? (keyAr || keyEn || storageKey)
+              : (keyEn || storageKey);
+            return { label, value: resolveLocalizedValue(v) };
+          }
+          // Backwards-compatible: simple string or {en, ar}
+          return { label: storageKey, value: resolveLocalizedValue(v) };
+        });
       if (opts.length > 0) result.details = { header: staticSpecs.details?.header || 'Fragrance Notes', options: opts };
     }
   }
@@ -40,7 +77,17 @@ function buildProductSpecs(product, staticSpecs) {
       // Object format: use ALL keys from the backend dynamically
       const opts = Object.entries(si)
         .filter(([, v]) => v)
-        .map(([k, v]) => ({ label: k, value: v }));
+        .map(([storageKey, v]) => {
+          if (v && typeof v === 'object') {
+            const keyEn = v.key_en || v.label_en || storageKey;
+            const keyAr = v.key_ar || v.label_ar || '';
+            const label = language === 'ar'
+              ? (keyAr || keyEn || storageKey)
+              : (keyEn || storageKey);
+            return { label, value: resolveLocalizedValue(v) };
+          }
+          return { label: storageKey, value: resolveLocalizedValue(v) };
+        });
       if (opts.length > 0) result.shipping = { header: staticSpecs.shipping?.header || 'Shipping', options: opts };
     }
   }
@@ -98,9 +145,8 @@ export const ProductSpecificationsAccordion = ({ type, product }) => {
 
   // When a real product is passed, derive specs from its data; otherwise use static
   const specs = useMemo(
-    () => product ? buildProductSpecs(product, staticSpecs) : staticSpecs,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [product?.id, language]
+    () => product ? buildProductSpecs(product, staticSpecs, language) : staticSpecs,
+    [product?.id, language, staticSpecs]
   );
 
 	return (

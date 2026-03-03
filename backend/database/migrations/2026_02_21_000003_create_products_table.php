@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->decimal('base_price', 10, 2)->default(0);
-            $table->decimal('discount_percentage', 5, 2)->default(0);
+            $table->decimal('discount_percentage', 5, 3)->default(0);
             $table->decimal('rating', 3, 2)->default(0);
             $table->integer('reviews_count')->default(0);
             $table->json('fragrance_notes')->nullable(); // Top, Heart, Base notes

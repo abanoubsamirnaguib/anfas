@@ -39,7 +39,7 @@ const StarRow = ({ rating }) => (
 export const ProductModal = (props) => {
   const { dismiss, category: categoryProp = false, product } = props;
   const isFavourite = useStoreState(FavouritesStore, checkFavourites(product));
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [showToast, setShowToast] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const galleryRef = useRef(null);
@@ -71,6 +71,11 @@ export const ProductModal = (props) => {
 
   // Determine category: use prop first, fallback to product's category
   const category = categoryProp || product?.category?.slug;
+
+  const productDescription =
+    language === 'ar'
+      ? (product.description_ar || product.description)
+      : product.description;
 
   // Build size options from product attributes (real backend data) or fall back to hardcoded
   const sizeOptions = useMemo(() => {
@@ -133,7 +138,7 @@ export const ProductModal = (props) => {
     
     const shareData = {
       title: product.title,
-      text: product.description || product.title,
+      text: productDescription || product.title,
       url: productUrl,
     };
 
@@ -443,7 +448,7 @@ export const ProductModal = (props) => {
               fontFamily: "'Jost', sans-serif",
             }}
           >
-            {product.description || t('product.description')}
+            {productDescription || t('product.description')}
           </p>
         </div>
 

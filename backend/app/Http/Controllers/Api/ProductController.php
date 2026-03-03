@@ -239,6 +239,7 @@ class ProductController extends Controller
             'reviews'              => (float) $product->rating,
             'reviews_count'        => $product->reviews_count,
             'description'          => $product->description,
+            'description_ar'       => $product->description_ar,
             'fragrance_notes'      => $product->fragrance_notes,
             'shipping_info'        => $product->shipping_info,
             'is_featured'          => $product->is_featured,
