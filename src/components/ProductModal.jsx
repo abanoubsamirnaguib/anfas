@@ -215,7 +215,6 @@ export const ProductModal = (props) => {
                 <video
                   key={item.id ?? `video-${idx}`}
                   src={item.url}
-                  controls
                   muted
                   playsInline
                   autoPlay
@@ -241,9 +240,10 @@ export const ProductModal = (props) => {
                     flexShrink: 0,
                     width: '100%',
                     height: '320px',
-                    objectFit: 'cover',
+                    objectFit: 'contain',
                     display: 'block',
                     scrollSnapAlign: 'start',
+                    backgroundColor: '#000',
                   }}
                 />
               )
@@ -251,7 +251,15 @@ export const ProductModal = (props) => {
               <img
                 src={FALLBACK_IMG}
                 alt={product.title}
-                style={{ flexShrink: 0, width: '100%', height: '320px', objectFit: 'cover', display: 'block', scrollSnapAlign: 'start' }}
+                style={{
+                  flexShrink: 0,
+                  width: '100%',
+                  height: '320px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  scrollSnapAlign: 'start',
+                  backgroundColor: '#000',
+                }}
               />
             )}
           </div>
