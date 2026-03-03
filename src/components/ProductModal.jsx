@@ -218,6 +218,8 @@ export const ProductModal = (props) => {
                   controls
                   muted
                   playsInline
+                  autoPlay
+                  loop
                   style={{
                     flexShrink: 0,
                     width: '100%',
