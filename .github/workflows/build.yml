@@ -13,7 +13,7 @@ jobs:
     env:
       # Example non-secret env vars (change to what your app needs)
       # Only vars prefixed with REACT_APP_ are exposed to the React build
-      REACT_APP_API_URL: https://anfas3otor.com/backend/public/api/v1
+      REACT_APP_API_URL: https://anfas3otor.com/backend/public/api/v1 
       # Example secret env var (set in GitHub repo Settings → Secrets and variables → Actions)
       # REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
 
