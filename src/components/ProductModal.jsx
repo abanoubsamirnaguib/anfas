@@ -440,7 +440,7 @@ export const ProductModal = (props) => {
               lineHeight: 1.2,
             }}
           >
-            {product.title}
+            {product.title} - {product.slug}
           </h1>
 
           {/* Reviews */}
