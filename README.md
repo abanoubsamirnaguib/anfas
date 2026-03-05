@@ -1,7 +1,7 @@
 # Anfas — Luxury Perfume Store
 
 A luxury perfume e-commerce mobile app built with **Ionic 6** and **React**, powered by a **Laravel** REST API backend.  
-The UI features a dark, editorial aesthetic inspired by high-end fragrance boutiques.
+The UI features a dark, editorial aesthetic inspired by high-end fragrance boutiques. 
 
 ---
 
