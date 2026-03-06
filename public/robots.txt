@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anfas3otor.com/sitemap.xml
