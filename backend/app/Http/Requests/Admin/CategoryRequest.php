@@ -23,15 +23,18 @@ class CategoryRequest extends FormRequest
         }
 
         return [
-            'name'        => ['required', 'string', 'min:2', 'max:255'],
-            'slug'        => ['nullable', 'string', 'max:255', $slugRule, 'regex:/^[a-z0-9\-]+$/'],
-            'description' => ['nullable', 'string', 'max:3000'],
-            'cover_image' => ['nullable', 'string', 'max:500'],
-            'tagline'     => ['nullable', 'string', 'max:255'],
-            'sort_order'  => ['nullable', 'integer', 'min:0', 'max:9999'],
-            'is_active'   => ['boolean'],
-            'tags'        => ['nullable', 'array'],
-            'tags.*'      => ['string', 'max:100'],
+            'name'           => ['required', 'string', 'min:2', 'max:255'],
+            'name_ar'        => ['nullable', 'string', 'min:2', 'max:255'],
+            'slug'           => ['nullable', 'string', 'max:255', $slugRule, 'regex:/^[a-z0-9\-]+$/'],
+            'description'    => ['nullable', 'string', 'max:3000'],
+            'description_ar' => ['nullable', 'string', 'max:3000'],
+            'cover_image'    => ['nullable', 'string', 'max:500'],
+            'tagline'        => ['nullable', 'string', 'max:255'],
+            'tagline_ar'     => ['nullable', 'string', 'max:255'],
+            'sort_order'     => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'is_active'      => ['boolean'],
+            'tags'           => ['nullable', 'array'],
+            'tags.*'         => ['string', 'max:100'],
         ];
     }
 

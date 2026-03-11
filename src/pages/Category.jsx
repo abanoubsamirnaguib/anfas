@@ -5,7 +5,6 @@ import {
   IonHeader,
   IonIcon,
   IonPage,
-  IonRouterLink,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -17,7 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { FilterModal } from '../components/FilterModal';
 import { ProductModal } from '../components/ProductModal';
-import { FALLBACK_IMG, productInfo, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
+import { FALLBACK_IMG, productInfo, getDisplayImage, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { fetchCategory, fetchCategoryTags, fetchProducts } from '../services/api';
@@ -63,6 +62,7 @@ const Category = () => {
   // Derive display values: prefer API data, fall back to static
   const coverImage  = categoryInfo?.cover_image || FALLBACK_IMG;
   const tagline     = categoryInfo?.tagline     || staticInfo?.tagline    || '';
+  const taglineAr   = categoryInfo?.tagline_ar  || tagline;
   // filters = dynamic tags from API (with 'None' prepended), fall back to static list
   const filters = availableTags.length > 0
     ? ['All', ...availableTags]
@@ -218,13 +218,24 @@ const Category = () => {
     );
   }
 
-  const catDisplayName = categoryInfo?.name
-    ? t(`categories.${category}`, null, categoryInfo.name)
-    : t(`categories.${category}`, null, category);
+  const catDisplayName =
+    language === 'ar'
+      ? (categoryInfo?.name_ar || t(`categories.${category}`, null, categoryInfo?.name || category))
+      : (categoryInfo?.name || t(`categories.${category}`, null, category));
 
-  const catTagline = tagline
-    ? t(`taglines.${category}`, null, tagline)
-    : t(`taglines.${category}`, null, '');
+  const catTagline = (() => {
+    const baseTagline = tagline || '';
+    const translated = t(`taglines.${category}`, null, baseTagline);
+    if (language === 'ar') {
+      return taglineAr || translated;
+    }
+    return translated;
+  })();
+
+  const catDescription =
+    language === 'ar'
+      ? (categoryInfo?.description_ar || categoryInfo?.description || '')
+      : (categoryInfo?.description || categoryInfo?.description_ar || '');
 
   return (
     <IonPage>
@@ -270,6 +281,21 @@ const Category = () => {
             </h1>
           </div>
         </div>
+
+        {/* ── Category Description (from admin, with Arabic variant) ── */}
+        {catDescription && (
+          <div
+            style={{
+              padding: '1rem 1.25rem 0',
+              fontFamily: "'Jost', sans-serif",
+              fontSize: '0.8rem',
+              lineHeight: 1.6,
+              color: '#A89880',
+            }}
+          >
+            {catDescription}
+          </div>
+        )}
 
         {/* ── Search ── */}
         <div style={{ padding: '0.75rem 1rem 0' }}>
@@ -334,19 +360,20 @@ const Category = () => {
                 language === 'ar'
                   ? (product.description_ar || product.description)
                   : product.description;
-              if (!product.image) return null;
+              const displayImage = getDisplayImage(product);
+              if (!displayImage) return null;
               return (
                 <div key={product.id || index} onClick={() => handleProductModal(product)} style={{ cursor: 'pointer' }}>
                   <div style={{ background: '#151515', border: '1px solid #2A2A2A', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', height: '200px' }}>
                       <img
-                        src={product.image}
+                        src={displayImage}
                         alt={product.title}
                         referrerPolicy="no-referrer"
                         onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
-                      {product.discount > 0 && (
+                      {hasDiscount(product) && (
                         <span style={{ position: 'absolute', top: '8px', right: '8px', background: '#C9A96E', color: '#0C0C0C', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 6px', borderRadius: '2px' }}>
                           -{Math.round(product.discount)}%
                         </span>

@@ -27,7 +27,6 @@ class Product extends Model
         'sort_order',
         'is_active',
         'is_featured',
-        'is_suggested',
         'tags',
     ];
 
@@ -40,7 +39,6 @@ class Product extends Model
         'tags' => JsonUnicode::class,
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
-        'is_suggested' => 'boolean',
     ];
 
     protected $appends = ['final_price'];

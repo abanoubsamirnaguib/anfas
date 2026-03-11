@@ -9,7 +9,7 @@ import {
 } from '@ionic/react';
 import { closeOutline, heart, heartOutline, starSharp, shareOutline } from 'ionicons/icons';
 import { useStoreState } from 'pullstate';
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 
 import { checkFavourites } from '../store/Selectors';
 import { addToFavourites } from '../store/FavouritesStore';
@@ -17,7 +17,7 @@ import { FavouritesStore } from '../store';
 import { ProductSpecificationsAccordion } from './ProductSpecificationsAccordion';
 import { AddToCartButton } from './AddToCartButton';
 import './ProductModal.css';
-import { FALLBACK_IMG, sortProductAttributes, hasDiscount } from '../utils';
+import { FALLBACK_IMG, getAttributeImage, getDefaultProductAttribute, sortProductAttributes } from '../utils';
 import { useI18n } from '../i18n';
 
 const StarRow = ({ rating }) => (
@@ -77,7 +77,7 @@ export const ProductModal = (props) => {
     }
 
     return imageItems;
-  }, [product?.images, product?.image, product?.video_url]);
+  }, [product?.images, product?.image, product?.title, product?.video_url]);
 
   const handleGalleryScroll = useCallback(() => {
     if (!galleryRef.current) return;
@@ -85,10 +85,10 @@ export const ProductModal = (props) => {
     setActiveSlide(Math.round(scrollLeft / offsetWidth));
   }, []);
 
-  const scrollToSlide = (index) => {
+  const scrollToSlide = useCallback((index) => {
     if (!galleryRef.current) return;
     galleryRef.current.scrollTo({ left: index * galleryRef.current.offsetWidth, behavior: 'smooth' });
-  };
+  }, []);
 
   // Determine category: use prop first, fallback to product's category
   const category = categoryProp || product?.category?.slug;
@@ -98,37 +98,23 @@ export const ProductModal = (props) => {
       ? (product.description_ar || product.description)
       : product.description;
 
-  // Build size options from product attributes (real backend data) or fall back to hardcoded
-  const sizeOptions = useMemo(() => {
-    const sortedAttrs = sortProductAttributes(product);
-    if (sortedAttrs.length > 0) {
-      return sortedAttrs.map((a) => ({
-        label: a.name,
-        value: a.value,
-        formatted_price: a.formatted_price,
-        formatted_original_price: a.formatted_original_price,
-        price: a.price,
-        original_price: a.original_price,
-        discount: a.discount || 0,
-      }));
-    }
-    // Static fallback (match accordion structure)
-    return [
-      { label: 'Standard', value: '', formatted_price: null, discount: product.discount || 0 },
-    ];
-  }, [product?.attributes]);
+  const sortedAttributes = useMemo(() => sortProductAttributes(product), [product]);
+  const defaultAttribute = useMemo(() => getDefaultProductAttribute(product), [product]);
+  const [selectedAttributeId, setSelectedAttributeId] = useState(defaultAttribute?.id ?? null);
 
-  const [selectedSize, setSelectedSize] = useState(
-    sizeOptions.length > 1
-      ? sizeOptions[1].value  // default to middle size
-      : sizeOptions[0]?.value || '50 ml'
-  );
+  useEffect(() => {
+    setSelectedAttributeId(defaultAttribute?.id ?? sortedAttributes[0]?.id ?? null);
+    setActiveSlide(0);
+  }, [product?.id, defaultAttribute?.id, sortedAttributes]);
 
-  // Determine displayed price based on selected size
-  const selectedAttr = sizeOptions.find((o) => o.value === selectedSize);
-  const displayPrice = selectedAttr?.formatted_price || selectedAttr?.price
-    ? (selectedAttr.formatted_price || `L.E ${Math.round(selectedAttr.price)}`)
-    : product.price;
+  const selectedAttr = useMemo(() => {
+    if (sortedAttributes.length === 0) return null;
+    return sortedAttributes.find((attribute) => attribute.id === selectedAttributeId) || defaultAttribute || sortedAttributes[0];
+  }, [defaultAttribute, selectedAttributeId, sortedAttributes]);
+
+  const displayPrice = selectedAttr?.formatted_price
+    || (selectedAttr?.price ? `L.E ${Math.round(selectedAttr.price)}` : null)
+    || product.price;
   
   // Get original price and discount from selected attribute
   const originalPrice = useMemo(() => {
@@ -150,6 +136,17 @@ export const ProductModal = (props) => {
   }, [selectedAttr, product]);
   
   const activeDiscount = selectedAttr?.discount || (product.has_attributes ? 0 : product.discount) || 0;
+  const selectedAttributeImage = getAttributeImage(selectedAttr, product?.display_image || product?.image);
+
+  useEffect(() => {
+    if (!selectedAttributeImage || galleryItems.length === 0) return;
+
+    const targetIndex = galleryItems.findIndex((item) => item.type === 'image' && item.url === selectedAttributeImage);
+    if (targetIndex === -1) return;
+
+    setActiveSlide(targetIndex);
+    requestAnimationFrame(() => scrollToSlide(targetIndex));
+  }, [galleryItems, scrollToSlide, selectedAttr?.id, selectedAttributeImage]);
 
   // Handle share functionality
   const handleShare = async () => {
@@ -468,14 +465,14 @@ export const ProductModal = (props) => {
         <div style={{ padding: '0 1.25rem' }}>
           <p className="section-label" style={{ marginBottom: '0.6rem' }}>{t('product.size')}</p>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {sizeOptions.map((opt) => (
+            {(sortedAttributes.length > 0 ? sortedAttributes : [{ id: 'default', name: 'Standard', value: '', formatted_price: null }]).map((opt) => (
               <button
-                key={opt.value}
-                onClick={() => setSelectedSize(opt.value)}
+                key={opt.id ?? opt.value}
+                onClick={() => setSelectedAttributeId(opt.id ?? null)}
                 style={{
-                  background: selectedSize === opt.value ? '#C9A96E' : '#1E1E1E',
-                  color: selectedSize === opt.value ? '#0C0C0C' : '#7A7A7A',
-                  border: selectedSize === opt.value ? '1px solid #C9A96E' : '1px solid #2A2A2A',
+                  background: (selectedAttr?.id ?? 'default') === (opt.id ?? 'default') ? '#C9A96E' : '#1E1E1E',
+                  color: (selectedAttr?.id ?? 'default') === (opt.id ?? 'default') ? '#0C0C0C' : '#7A7A7A',
+                  border: (selectedAttr?.id ?? 'default') === (opt.id ?? 'default') ? '1px solid #C9A96E' : '1px solid #2A2A2A',
                   borderRadius: '2px',
                   padding: '6px 14px',
                   fontSize: '0.72rem',
@@ -564,7 +561,11 @@ export const ProductModal = (props) => {
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <AddToCartButton product={{ ...product, price: displayPrice }} size={selectedSize} />
+              <AddToCartButton
+                product={{ ...product, price: displayPrice }}
+                attribute={selectedAttr}
+                image={selectedAttributeImage}
+              />
             </div>
           </div>
         </IonToolbar>

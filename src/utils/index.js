@@ -112,42 +112,70 @@ export const sortProductAttributes = (product) => {
 	});
 };
 
+export const getDefaultProductAttribute = (product) => {
+	const sortedAttrs = sortProductAttributes(product);
+	return sortedAttrs.find((attr) => attr?.is_default) || sortedAttrs[0] || null;
+};
+
+export const getSuggestedProductAttribute = (product) => {
+	const sortedAttrs = sortProductAttributes(product);
+	return sortedAttrs.find((attr) => attr?.is_suggested) || null;
+};
+
+export const getAttributeImage = (attribute, fallbackImage = null) => {
+	return attribute?.image_url || attribute?.image || fallbackImage || null;
+};
+
+export const getSuggestedAttributeImage = (attribute, fallbackImage = null) => {
+	return attribute?.suggested_image_url || getAttributeImage(attribute, fallbackImage);
+};
+
+export const getDisplayImage = (product) => {
+	return (
+		product?.display_image ||
+		getAttributeImage(getDefaultProductAttribute(product), product?.image) ||
+		product?.image ||
+		FALLBACK_IMG
+	);
+};
+
+export const getSuggestedDisplayImage = (product) => {
+	const suggestedAttr = getSuggestedProductAttribute(product);
+	return (
+		product?.suggested_image ||
+		getSuggestedAttributeImage(suggestedAttr, getDisplayImage(product)) ||
+		getDisplayImage(product)
+	);
+};
+
 /**
  * Get the display price for a product card
- * Returns the price of the first attribute (after sorting) or the base price
+ * Returns the price of the default attribute or the base price
  */
 export const getDisplayPrice = (product) => {
-	const sortedAttrs = sortProductAttributes(product);
-	
-	// If product has attributes, use the first one's price
-	if (sortedAttrs.length > 0) {
-		const firstAttr = sortedAttrs[0];
-		// Prefer formatted_price, fallback to price
-		return firstAttr.formatted_price || firstAttr.price || product.price;
+	const defaultAttr = getDefaultProductAttribute(product);
+
+	if (defaultAttr) {
+		return defaultAttr.formatted_price || defaultAttr.price || product.price;
 	}
 	
-	// Otherwise use the base product price (with discount applied)
 	return product.price;
 };
 
 /**
  * Get the original (pre-discount) price for a product card
- * Returns the original price of the first attribute or the base original price
+ * Returns the original price of the default attribute or the base original price
  */
 export const getOriginalPrice = (product) => {
-	const sortedAttrs = sortProductAttributes(product);
-	
-	// If product has attributes, use the first one's original price
-	if (sortedAttrs.length > 0) {
-		const firstAttr = sortedAttrs[0];
-		// Only return if there's actually a discount on this attribute
-		if (firstAttr.discount > 0) {
-			return firstAttr.formatted_original_price || firstAttr.original_price;
+	const defaultAttr = getDefaultProductAttribute(product);
+
+	if (defaultAttr) {
+		if (defaultAttr.discount > 0) {
+			return defaultAttr.formatted_original_price || defaultAttr.original_price;
 		}
 		return null;
 	}
 	
-	// For products without attributes, check product discount
 	if (product.discount > 0) {
 		return product.original_price;
 	}
@@ -162,14 +190,29 @@ export const getOriginalPrice = (product) => {
 export const hasDiscount = (product) => {
 	if (!product) return false;
 	
-	const sortedAttrs = sortProductAttributes(product);
-	
-	// If product has attributes, check first attribute's discount
-	if (sortedAttrs.length > 0) {
-		const firstAttr = sortedAttrs[0];
-		return firstAttr.discount > 0;
+	const defaultAttr = getDefaultProductAttribute(product);
+
+	if (defaultAttr) {
+		return defaultAttr.discount > 0;
 	}
 	
-	// Otherwise check product's discount
 	return product.discount > 0;
+};
+
+export const getSuggestedDisplayPrice = (product) => {
+	const suggestedAttr = getSuggestedProductAttribute(product) || getDefaultProductAttribute(product);
+	return suggestedAttr?.formatted_price || suggestedAttr?.price || getDisplayPrice(product);
+};
+
+export const getSuggestedOriginalPrice = (product) => {
+	const suggestedAttr = getSuggestedProductAttribute(product) || getDefaultProductAttribute(product);
+	if (suggestedAttr?.discount > 0) {
+		return suggestedAttr.formatted_original_price || suggestedAttr.original_price;
+	}
+	return null;
+};
+
+export const hasSuggestedDiscount = (product) => {
+	const suggestedAttr = getSuggestedProductAttribute(product) || getDefaultProductAttribute(product);
+	return (suggestedAttr?.discount || 0) > 0;
 };

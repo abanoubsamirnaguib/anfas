@@ -51,11 +51,13 @@ class ProductController extends Controller
         $validated = $request->validated();
         $categoryIds   = $validated['category_ids'];
         $galleryImages = $validated['gallery_images'] ?? [];
+        $coverImage = $validated['image'] ?? null;
         unset($validated['category_ids'], $validated['gallery_images']);
 
         $product = Product::create($validated);
         $product->categories()->sync($categoryIds);
         $this->syncGalleryImages($product, $galleryImages);
+        $this->syncAttributeImageSelections($product, $coverImage, $galleryImages);
         $this->syncTagsToCategories($product);
 
         return redirect()->route('admin.products.index')
@@ -78,11 +80,13 @@ class ProductController extends Controller
         $validated = $request->validated();
         $categoryIds   = $validated['category_ids'];
         $galleryImages = $validated['gallery_images'] ?? [];
+        $coverImage = $validated['image'] ?? null;
         unset($validated['category_ids'], $validated['gallery_images']);
 
         $product->update($validated);
         $product->categories()->sync($categoryIds);
         $this->syncGalleryImages($product, $galleryImages);
+        $this->syncAttributeImageSelections($product, $coverImage, $galleryImages);
         $product->refresh();
         $this->syncTagsToCategories($product);
 
@@ -104,6 +108,36 @@ class ProductController extends Controller
                 'sort_order' => $img['sort_order'] ?? $i,
             ]);
         }
+    }
+
+    /**
+     * Clear attribute image references that are no longer selectable on the product.
+     */
+    private function syncAttributeImageSelections(Product $product, ?string $coverImage, array $galleryImages): void
+    {
+        $validImages = array_values(array_filter(array_unique(array_merge(
+            array_filter([$coverImage]),
+            array_values(array_filter(array_map(fn ($img) => $img['url'] ?? null, $galleryImages)))
+        ))));
+
+        if (empty($validImages)) {
+            $product->attributes()->update([
+                'image_url' => null,
+                'suggested_image_url' => null,
+            ]);
+
+            return;
+        }
+
+        $product->attributes()
+            ->whereNotNull('image_url')
+            ->whereNotIn('image_url', $validImages)
+            ->update(['image_url' => null]);
+
+        $product->attributes()
+            ->whereNotNull('suggested_image_url')
+            ->whereNotIn('suggested_image_url', $validImages)
+            ->update(['suggested_image_url' => null]);
     }
 
     /**

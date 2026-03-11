@@ -44,10 +44,13 @@ class CategoryController extends Controller
         return [
             'id'             => $category->id,
             'name'           => $category->name,
+            'name_ar'        => $category->name_ar,
             'slug'           => $category->slug,
             'description'    => $category->description,
+            'description_ar' => $category->description_ar,
             'cover_image'    => $this->resolveImageUrl($category->cover_image),
             'tagline'        => $category->tagline,
+            'tagline_ar'     => $category->tagline_ar,
             'sort_order'     => $category->sort_order,
             'is_active'      => $category->is_active,
             'products_count' => $category->products_count ?? 0,

@@ -100,7 +100,7 @@ class ProductController extends Controller
         $perPage = (int) $request->input('per_page', 10);
 
         $products = Product::where('is_active', true)
-            ->where('is_suggested', true)
+            ->whereHas('attributes', fn ($q) => $q->where('is_active', true)->where('is_suggested', true))
             ->whereHas('categories', fn ($q) => $q->where('is_active', true))
             ->with([
                 'categories',
@@ -180,7 +180,7 @@ class ProductController extends Controller
     private function formatProduct(Product $product, bool $withCategory = false): array
     {
         $productDiscount = (float) $product->discount_percentage;
-        
+
         $attributes = ($product->relationLoaded('attributes') ? $product->attributes : collect())
             ->map(function ($a) {
                 // Each attribute has its own discount percentage
@@ -201,16 +201,31 @@ class ProductController extends Controller
                     'discount'               => $attributeDiscount,
                     'stock'                  => $a->stock,
                     'sku'                    => $a->sku,
+                    'sort_order'             => $a->sort_order,
+                    'is_default'             => (bool) ($a->is_default ?? false),
+                    'is_suggested'           => (bool) ($a->is_suggested ?? false),
+                    'image_url'              => $this->resolveImageUrl($a->image_url),
+                    'suggested_image_url'    => $this->resolveImageUrl($a->suggested_image_url),
                 ];
             });
 
-        // Use the smallest-size attribute price as the display price, fallback to base_price
+        $defaultAttribute = $attributes->firstWhere('is_default', true) ?? $attributes->first();
+        $suggestedAttribute = $attributes->firstWhere('is_suggested', true);
+
+        $defaultAttributeImage = is_array($defaultAttribute) ? ($defaultAttribute['image_url'] ?? null) : null;
+        $suggestedAttributeImage = is_array($suggestedAttribute) ? ($suggestedAttribute['image_url'] ?? null) : null;
+        $suggestedAttributeReferenceImage = is_array($suggestedAttribute) ? ($suggestedAttribute['suggested_image_url'] ?? null) : null;
+
+        $displayImage = $defaultAttributeImage ?? $this->resolveImageUrl($product->image);
+        $suggestedImage = $suggestedAttributeReferenceImage
+            ?? $suggestedAttributeImage
+            ?? $displayImage;
+
+        // Use the default attribute price when available, fallback to base_price
         if ($attributes->isNotEmpty()) {
-            // Product has attributes - use first attribute's price and discount
-            $firstAttr = $attributes->sortBy('price')->first();
-            $displayPrice = $firstAttr['price'];
-            $originalDisplayPrice = $firstAttr['original_price'];
-            $displayDiscount = $firstAttr['discount'];
+            $displayPrice = $defaultAttribute['price'];
+            $originalDisplayPrice = $defaultAttribute['original_price'];
+            $displayDiscount = $defaultAttribute['discount'];
         } else {
             // No attributes - use product's base price and discount
             $originalDisplayPrice = (float) $product->base_price;
@@ -223,6 +238,8 @@ class ProductController extends Controller
             'slug'                 => $product->slug,
             'title'                => $product->name,
             'image'                => $this->resolveImageUrl($product->image),
+            'display_image'        => $displayImage,
+            'suggested_image'      => $suggestedImage,
             'video_url'            => $this->resolveImageUrl($product->video_url),
             'images'               => ($product->relationLoaded('images') ? $product->images : collect())
                 ->map(fn ($img) => [
@@ -244,8 +261,10 @@ class ProductController extends Controller
             'fragrance_notes'      => $product->fragrance_notes,
             'shipping_info'        => $product->shipping_info,
             'is_featured'          => $product->is_featured,
-            'is_suggested'         => $product->is_suggested,
+            'is_suggested'         => $suggestedAttribute !== null,
             'tags'                 => $product->tags ?? [],
+            'default_attribute_id' => $defaultAttribute['id'] ?? null,
+            'suggested_attribute_id' => $suggestedAttribute['id'] ?? null,
             'attributes'           => $attributes->values(),
         ];
 

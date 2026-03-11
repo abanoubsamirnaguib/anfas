@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,6 +31,10 @@ class ProductAttributeRequest extends FormRequest
             'stock'     => ['nullable', 'integer', 'min:0', 'max:999999'],
             'sku'       => ['nullable', 'string', 'max:100', $skuRule],
             'is_active' => ['boolean'],
+            'is_default' => ['boolean'],
+            'is_suggested' => ['boolean'],
+            'image_url' => ['nullable', 'string', 'max:500', $this->imageSelectionRule()],
+            'suggested_image_url' => ['nullable', 'string', 'max:500', $this->imageSelectionRule()],
         ];
     }
 
@@ -52,6 +57,8 @@ class ProductAttributeRequest extends FormRequest
             'stock.max'      => 'Stock may not exceed 999,999.',
             'sku.max'        => 'SKU may not exceed 100 characters.',
             'sku.unique'     => 'This SKU is already used by another attribute.',
+            'image_url.max'  => 'Attribute image path may not exceed 500 characters.',
+            'suggested_image_url.max' => 'Suggested image path may not exceed 500 characters.',
         ];
     }
 
@@ -59,6 +66,40 @@ class ProductAttributeRequest extends FormRequest
     {
         return [
             'is_active' => 'active status',
+            'is_default' => 'default status',
+            'is_suggested' => 'suggested status',
+            'image_url' => 'attribute image',
+            'suggested_image_url' => 'suggested image',
         ];
+    }
+
+    private function imageSelectionRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if (blank($value)) {
+                return;
+            }
+
+            if (!in_array($value, $this->availableImageUrls(), true)) {
+                $fail('Please choose an image that belongs to this product.');
+            }
+        };
+    }
+
+    private function availableImageUrls(): array
+    {
+        /** @var Product|null $product */
+        $product = $this->route('product');
+
+        if (!$product) {
+            return [];
+        }
+
+        $galleryUrls = $product->images()->pluck('url')->all();
+
+        return array_values(array_filter(array_unique([
+            $product->image,
+            ...$galleryUrls,
+        ])));
     }
 }

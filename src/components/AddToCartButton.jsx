@@ -3,12 +3,22 @@ import { bagAddOutline } from "ionicons/icons";
 import { addToCart } from "../store/CartStore";
 import { useI18n } from '../i18n';
 
-export const AddToCartButton = ({ product, size }) => {
+export const AddToCartButton = ({ product, attribute = null, image = null }) => {
 	const { t } = useI18n();
 	const [present, dismiss] = useIonToast();
 
 	const handleAddToCart = () => {
-		addToCart({ ...product, size: size || product.size }, 1);
+		addToCart({
+			id: product?.id,
+			slug: product?.slug,
+			title: product?.title,
+			image: image || product?.display_image || product?.image,
+			price: attribute?.formatted_price || product?.price,
+			size: attribute?.value || product?.size || null,
+			attribute_id: attribute?.id || null,
+			attribute_name: attribute?.name || null,
+			attribute_value: attribute?.value || null,
+		}, 1);
 
 		// Dispatch event to trigger cart badge pulse animation
 		window.dispatchEvent(new CustomEvent('cart-item-added'));

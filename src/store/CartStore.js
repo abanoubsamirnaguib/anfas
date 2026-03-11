@@ -6,7 +6,17 @@ const CartStore = new Store({
 
 export default CartStore;
 
-const findIndex = (cart, product) => cart.findIndex(i => i && (i.title === product.title) && ((i.size || '') === (product.size || '')));
+const getCartItemKey = (product) => {
+    if (!product) return '';
+
+    if (product.attribute_id) {
+        return `${product.id || product.title}:attr:${product.attribute_id}`;
+    }
+
+    return `${product.id || product.title}:size:${product.size || ''}`;
+};
+
+const findIndex = (cart, product) => cart.findIndex(i => getCartItemKey(i) === getCartItemKey(product));
 
 export const addToCart = (product, qty = 1) => {
     const currentCart = CartStore.getRawState().cart;

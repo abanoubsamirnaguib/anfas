@@ -52,7 +52,6 @@ class ProductRequest extends FormRequest
             'sort_order'           => ['nullable', 'integer', 'min:0', 'max:9999'],
             'is_active'            => ['boolean'],
             'is_featured'          => ['boolean'],
-            'is_suggested'         => ['boolean'],
             'tags'                 => ['nullable', 'array'],
             'tags.*'               => ['string', 'max:100'],
             'gallery_images'       => ['nullable', 'array'],
@@ -118,7 +117,6 @@ class ProductRequest extends FormRequest
             'sort_order'          => 'sort order',
             'is_active'           => 'active status',
             'is_featured'         => 'featured status',
-            'is_suggested'        => 'suggested status',
         ];
     }
 }

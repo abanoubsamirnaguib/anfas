@@ -145,10 +145,6 @@
                                 <input v-model="form.is_featured" type="checkbox" id="is_featured" class="rounded border-slate-600 bg-slate-900 text-indigo-500 shadow-sm">
                                 <label for="is_featured" class="ml-2 block text-sm text-slate-200">Featured</label>
                             </div>
-                            <div class="flex items-center">
-                                <input v-model="form.is_suggested" type="checkbox" id="is_suggested" class="rounded border-slate-600 bg-slate-900 text-indigo-500 shadow-sm">
-                                <label for="is_suggested" class="ml-2 block text-sm text-slate-200">Suggested</label>
-                            </div>
                         </div>
 
                         <!-- Tags -->
@@ -235,7 +231,6 @@ const form = useForm({
     sort_order: 0,
     is_active: true,
     is_featured: false,
-    is_suggested: false,
     tags: [],
 });
 

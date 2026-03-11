@@ -11,10 +11,17 @@
             <div class="max-w-3xl mx-auto">
                 <div class="bg-slate-900 border border-slate-800 overflow-hidden rounded-xl">
                     <form @submit.prevent="submit" class="p-6 space-y-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-300">Name *</label>
-                            <input v-model="form.name" type="text" id="name" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                            <div v-if="form.errors.name" class="text-red-600 text-sm mt-1">{{ form.errors.name }}</div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-slate-300">Name (EN) *</label>
+                                <input v-model="form.name" type="text" id="name" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <div v-if="form.errors.name" class="text-red-600 text-sm mt-1">{{ form.errors.name }}</div>
+                            </div>
+                            <div>
+                                <label for="name_ar" class="block text-sm font-medium text-slate-300">Name (AR)</label>
+                                <input v-model="form.name_ar" type="text" id="name_ar" dir="rtl" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <div v-if="form.errors.name_ar" class="text-red-600 text-sm mt-1">{{ form.errors.name_ar }}</div>
+                            </div>
                         </div>
 
                         <div>
@@ -23,14 +30,26 @@
                             <div v-if="form.errors.slug" class="text-red-600 text-sm mt-1">{{ form.errors.slug }}</div>
                         </div>
 
-                        <div>
-                            <label for="tagline" class="block text-sm font-medium text-slate-300">Tagline</label>
-                            <input v-model="form.tagline" type="text" id="tagline" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="tagline" class="block text-sm font-medium text-slate-300">Tagline (EN)</label>
+                                <input v-model="form.tagline" type="text" id="tagline" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label for="tagline_ar" class="block text-sm font-medium text-slate-300">Tagline (AR)</label>
+                                <input v-model="form.tagline_ar" type="text" id="tagline_ar" dir="rtl" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
                         </div>
 
-                        <div>
-                            <label for="description" class="block text-sm font-medium text-slate-300">Description</label>
-                            <textarea v-model="form.description" id="description" rows="4" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-slate-300">Description (EN)</label>
+                                <textarea v-model="form.description" id="description" rows="4" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                            </div>
+                            <div>
+                                <label for="description_ar" class="block text-sm font-medium text-slate-300">Description (AR)</label>
+                                <textarea v-model="form.description_ar" id="description_ar" rows="4" dir="rtl" class="mt-1 block w-full rounded-md border-slate-700 bg-slate-950 text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                            </div>
                         </div>
 
                         <div>
@@ -115,9 +134,12 @@ const props = defineProps({
 
 const form = useForm({
     name: props.category.name,
+    name_ar: props.category.name_ar ?? '',
     slug: props.category.slug ?? '',
     tagline: props.category.tagline ?? '',
+    tagline_ar: props.category.tagline_ar ?? '',
     description: props.category.description ?? '',
+    description_ar: props.category.description_ar ?? '',
     cover_image: props.category.cover_image ?? '',
     sort_order: props.category.sort_order ?? 0,
     is_active: props.category.is_active,

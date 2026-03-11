@@ -3,7 +3,15 @@ import { useEffect, useState } from "react";
 import { CartStore } from "../store";
 import { increaseQty, decreaseQty, removeFromCart, clearCart, addToCart } from "../store/CartStore";
 import { getCart } from "../store/Selectors";
-import { FALLBACK_IMG } from "../utils";
+import {
+  FALLBACK_IMG,
+  getDefaultProductAttribute,
+  getSuggestedDisplayImage,
+  getSuggestedDisplayPrice,
+  getSuggestedOriginalPrice,
+  getSuggestedProductAttribute,
+  hasSuggestedDiscount,
+} from "../utils";
 import { useI18n } from '../i18n';
 import { sendWhatsappMessage, validateDiscountCode, fetchSettings, fetchSuggestedProducts } from '../services/api';
 import { ProductModal } from './ProductModal';
@@ -102,17 +110,18 @@ export const CartModal = (props) => {
   };
 
   const handleQuickAddToCart = (product) => {
-    // Add first attribute or base price to cart
-    const firstAttr = product.attributes && product.attributes.length > 0 ? product.attributes[0] : null;
-    const price = firstAttr ? firstAttr.formatted_price : product.price;
-    const size = firstAttr ? firstAttr.value : null;
-    
+    const suggestedAttr = getSuggestedProductAttribute(product) || getDefaultProductAttribute(product);
+
     addToCart({
       id: product.id,
+      slug: product.slug,
       title: product.title,
-      image: product.image,
-      price: price,
-      size: size,
+      image: getSuggestedDisplayImage(product),
+      price: getSuggestedDisplayPrice(product),
+      size: suggestedAttr?.value || null,
+      attribute_id: suggestedAttr?.id || null,
+      attribute_name: suggestedAttr?.name || null,
+      attribute_value: suggestedAttr?.value || null,
     });
 
     present({
@@ -187,9 +196,9 @@ export const CartModal = (props) => {
         return {
           product_id: i.id || null,
           product_name: i.title,
-          attribute_id: null,
-          attribute_name: i.size ? 'size' : null,
-          attribute_value: i.size || null,
+          attribute_id: i.attribute_id || null,
+          attribute_name: i.attribute_name || (i.size ? 'size' : null),
+          attribute_value: i.attribute_value || i.size || null,
           quantity: qty,
           unit_price: unit,
           subtotal: unit * qty,
@@ -394,7 +403,7 @@ export const CartModal = (props) => {
                       lineHeight: 1.2,
                     }}
                   >
-                    {item.title}{item.size ? ` • ${item.size}` : ''}
+                    {item.title}{(item.attribute_value || item.size) ? ` • ${item.attribute_value || item.size}` : ''}
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <p style={{ color: '#C9A96E', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
@@ -475,7 +484,11 @@ export const CartModal = (props) => {
               WebkitOverflowScrolling: 'touch',
             }}>
               {suggestedProducts.map((product) => {
-                const hasDiscount = product.discount && product.discount > 0;
+                const suggestedAttr = getSuggestedProductAttribute(product) || getDefaultProductAttribute(product);
+                const suggestedImage = getSuggestedDisplayImage(product);
+                const suggestedPrice = getSuggestedDisplayPrice(product);
+                const suggestedOriginalPrice = getSuggestedOriginalPrice(product);
+                const suggestedHasDiscount = hasSuggestedDiscount(product);
                 const productDescription =
                   language === 'ar'
                     ? (product.description_ar || product.description)
@@ -508,7 +521,7 @@ export const CartModal = (props) => {
                       }}
                     >
                       <img
-                        src={product.image}
+                        src={suggestedImage}
                         alt={product.title}
                         referrerPolicy="no-referrer"
                         onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
@@ -519,7 +532,7 @@ export const CartModal = (props) => {
                         }}
                       />
                       {/* Discount Badge */}
-                      {hasDiscount && (
+                      {suggestedHasDiscount && (
                         <div style={{
                           position: 'absolute',
                           top: '4px',
@@ -533,7 +546,7 @@ export const CartModal = (props) => {
                           lineHeight: 1,
                           boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                         }}>
-                          -{Math.round(product.discount)}%
+                          -{Math.round(suggestedAttr?.discount || 0)}%
                         </div>
                       )}
                     </div>
@@ -570,13 +583,29 @@ export const CartModal = (props) => {
                           {productDescription}
                         </p>
                       )}
+                      {suggestedAttr && (
+                        <p style={{ fontSize: '0.6rem', color: '#A89880', margin: 0, lineHeight: 1.2 }}>
+                          {[suggestedAttr.name, suggestedAttr.value].filter(Boolean).join(' • ')}
+                        </p>
+                      )}
+                      {suggestedOriginalPrice && (
+                        <p style={{
+                          color: '#EF4444',
+                          fontSize: '0.55rem',
+                          fontWeight: 700,
+                          margin: 0,
+                          textDecoration: 'line-through',
+                        }}>
+                          {suggestedOriginalPrice}
+                        </p>
+                      )}
                       <p style={{
                         color: '#C9A96E',
                         fontSize: '0.65rem',
                         fontWeight: 600,
                         margin: 0,
                       }}>
-                        {product.price}
+                        {suggestedPrice}
                       </p>
 
                       {/* Add Icon Button */}

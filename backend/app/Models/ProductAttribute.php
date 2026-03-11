@@ -30,6 +30,10 @@ class ProductAttribute extends Model
         'stock',
         'sku',
         'is_active',
+        'is_default',
+        'is_suggested',
+        'image_url',
+        'suggested_image_url',
         'sort_order',
     ];
 
@@ -37,6 +41,8 @@ class ProductAttribute extends Model
         'price' => 'decimal:2',
         'discount_percentage' => 'decimal:3',
         'is_active' => 'boolean',
+        'is_default' => 'boolean',
+        'is_suggested' => 'boolean',
     ];
 
     protected $appends = ['final_price'];

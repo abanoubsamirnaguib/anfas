@@ -3,7 +3,6 @@ import {
   IonHeader,
   IonIcon,
   IonPage,
-  IonRouterLink,
   IonTitle,
   IonToolbar,
   IonButtons,
@@ -17,7 +16,7 @@ import { ProductModal } from '../components/ProductModal';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { FavouritesStore } from '../store';
 import { getFavourites } from '../store/Selectors';
-import { FALLBACK_IMG, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
+import { FALLBACK_IMG, getDisplayImage, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 
 const Favourites = () => {
@@ -125,7 +124,8 @@ const Favourites = () => {
               }}
             >
               {favourites.map((product, index) => {
-                if (!product.image || product.image === '' || product.image.includes('Placeholder')) return null;
+                const displayImage = getDisplayImage(product);
+                if (!displayImage || displayImage === '' || displayImage.includes('Placeholder')) return null;
                 return (
                   <div
                     key={index}
@@ -142,7 +142,7 @@ const Favourites = () => {
                     >
                       <div style={{ position: 'relative', height: '200px' }}>
                         <img
-                          src={product.image}
+                          src={displayImage}
                           alt={product.title}
                           referrerPolicy="no-referrer"
                           onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}

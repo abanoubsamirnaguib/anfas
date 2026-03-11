@@ -10,7 +10,7 @@ import {
   useIonViewDidEnter,
 } from '@ionic/react';
 import { useEffect, useState } from 'react';
-import { productInfo, FALLBACK_IMG, capitalize, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
+import { productInfo, FALLBACK_IMG, capitalize, getDisplayImage, getDisplayPrice, getOriginalPrice, hasDiscount } from '../utils';
 import { useI18n } from '../i18n';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { ProductModal } from '../components/ProductModal';
@@ -134,10 +134,12 @@ const Categories = () => {
     ? apiCategories.map((cat) => {
         const st = productInfo[cat.slug] || {};
         return {
-          slug:       cat.slug,
-          name:       cat.name,
-          coverImage: cat.cover_image || FALLBACK_IMG,
-          tagline:    cat.tagline    || st.tagline    || '',
+          slug:        cat.slug,
+          name:        cat.name,
+          name_ar:     cat.name_ar,
+          coverImage:  cat.cover_image || FALLBACK_IMG,
+          tagline:     cat.tagline     ?? st.tagline     ?? '',
+          tagline_ar:  cat.tagline_ar  ?? st.tagline_ar  ?? '',
         };
       })
     : Object.keys(productInfo).map((slug) => ({
@@ -147,8 +149,21 @@ const Categories = () => {
         tagline:    productInfo[slug].tagline,
       }));
 
-  const getCatName    = (cat) => t(`categories.${cat.slug}`, null, cat.name);
-  const getCatTagline = (cat) => t(`taglines.${cat.slug}`,   null, cat.tagline);
+  const getCatName = (cat) => {
+    if (language === 'ar') {
+      if (cat.name_ar) return cat.name_ar;
+      return t(`categories.${cat.slug}`, null, cat.name);
+    }
+    return t(`categories.${cat.slug}`, null, cat.name);
+  };
+
+  const getCatTagline = (cat) => {
+    if (language === 'ar') {
+      if (cat.tagline_ar) return cat.tagline_ar;
+      return t(`taglines.${cat.slug}`, null, cat.tagline);
+    }
+    return t(`taglines.${cat.slug}`, null, cat.tagline);
+  };
 
   return (
     <IonPage>
@@ -317,7 +332,7 @@ const Categories = () => {
 
         {/* ── Featured Horizontal Scroll ── */}
         <div style={{ padding: '0 0 0 1.25rem' }}>
-          <p className="section-label" style={{ marginBottom: '0.75rem' }}>{t('home.featured')}</p>
+          <p className="section-label" style={{ marginBottom: '0.75rem' }}>{t('featured.bestSeller')}</p>
           <div
             style={{
               display: 'flex',
@@ -350,7 +365,7 @@ const Categories = () => {
                       >
                         <div style={{ position: 'relative', height: '200px' }}>
                           <img
-                            src={product.image || FALLBACK_IMG}
+                            src={getDisplayImage(product) || FALLBACK_IMG}
                             alt={product.title}
                             referrerPolicy="no-referrer"
                             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }}
@@ -409,9 +424,9 @@ const Categories = () => {
                           >
                             {product.title}
                           </p>
-                          {product.description && (
+                          {(language === 'ar' ? (product.description_ar || product.description) : product.description) && (
                             <p style={{ fontSize: '0.65rem', color: '#7A7A7A', margin: '0 0 4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                              {product.description}
+                              {language === 'ar' ? (product.description_ar || product.description) : product.description}
                             </p>
                           )}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
