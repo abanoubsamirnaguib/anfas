@@ -65,7 +65,7 @@ const Product = () => {
         },
       });
     }
-  }, [product, loading]);
+  }, [product, loading, category, presentProductModal, router]);
 
   return (
     <IonPage>

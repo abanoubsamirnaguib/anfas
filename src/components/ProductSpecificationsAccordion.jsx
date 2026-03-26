@@ -146,7 +146,7 @@ export const ProductSpecificationsAccordion = ({ type, product }) => {
   // When a real product is passed, derive specs from its data; otherwise use static
   const specs = useMemo(
     () => product ? buildProductSpecs(product, staticSpecs, language) : staticSpecs,
-    [product?.id, language, staticSpecs]
+    [product, language, staticSpecs]
   );
 
 	return (

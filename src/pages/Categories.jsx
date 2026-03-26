@@ -181,9 +181,11 @@ const Categories = () => {
             }}
           >
             <div onClick={() => document.getElementById('hero-section')?.scrollIntoView({ behavior: 'smooth' })} style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <img src="/assets/perfume/anfas.png" alt="logo" style={{ height: '70px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
-                {/* <span>{t('brand')}</span> */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.15rem', cursor: 'pointer' }}>
+                <img src="/assets/perfume/anfas.png" alt="logo" style={{ height: '70px', width: 'auto', objectFit: 'contain', borderRadius: '4px', clipPath: 'inset(0 0 8px 0)' }} referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK_IMG; }} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transform: 'translateY(-10px)' }}>
+                  <h1 style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.12em', color: '#fff', lineHeight: 1, margin: 0, padding: 0 }}> ANFAS | أنــفــاس </h1>
+                </div>
               </div>
             </div>
           </IonTitle>

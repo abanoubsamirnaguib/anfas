@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'appLang';
 
@@ -376,11 +376,11 @@ export const I18nProvider = ({ children }) => {
 
   const toggleLanguage = () => setLanguage((prev) => (prev === 'en' ? 'ar' : 'en'));
 
-  const t = (key, vars, fallback) => {
+  const t = useCallback((key, vars, fallback) => {
     const template = getValue(translations[language], key) ?? getValue(translations.en, key) ?? fallback ?? key;
     if (typeof template !== 'string') return template;
     return formatText(template, vars);
-  };
+  }, [language]);
 
   const value = useMemo(
     () => ({
@@ -390,7 +390,7 @@ export const I18nProvider = ({ children }) => {
       t,
       translations: translations[language],
     }),
-    [language]
+    [language, t]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
